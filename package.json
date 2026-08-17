@@ -1,6 +1,6 @@
 {
   "name": "ai-mastery-lab",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Gamified Daily AI Engineer Accelerator, RAG/Agent Simulators, and Technical Interview Articulation Studio.",
   "main": "index.html",
   "scripts": {
