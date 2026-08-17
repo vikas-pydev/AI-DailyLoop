@@ -1,0 +1,26 @@
+{
+  "name": "ai-mastery-lab",
+  "version": "1.0.0",
+  "description": "Gamified Daily AI Engineer Accelerator, RAG/Agent Simulators, and Technical Interview Articulation Studio.",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve . -p 8080",
+    "dev": "serve . -p 8080"
+  },
+  "keywords": [
+    "ai-engineer",
+    "rag",
+    "llm",
+    "vector-database",
+    "ai-agents",
+    "fastapi",
+    "interview-prep",
+    "gamification",
+    "pwa"
+  ],
+  "author": "AI Mastery Lab",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}

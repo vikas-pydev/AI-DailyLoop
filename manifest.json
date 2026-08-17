@@ -1,0 +1,17 @@
+{
+  "name": "AI Mastery Lab - Daily AI Engineer Accelerator",
+  "short_name": "AIMasteryLab",
+  "description": "Gamified daily AI Engineer learning platform, interactive RAG/Agent simulators, quizzes, and technical interview articulation studio.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#090d16",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
