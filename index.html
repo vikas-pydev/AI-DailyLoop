@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Mastery Lab - Daily AI Engineer Accelerator & Interview Studio</title>
-  <meta name="description" content="Gamified AI Engineer daily learning platform, interactive RAG & Agent simulators, quizzes, and technical interview articulation studio.">
+  <title>AI Mastery Lab - IITP-AIMLT-2601 Exam Accelerator & Interactive Studio</title>
+  <meta name="description" content="Complete interactive revision platform for IITP-AIMLT-2601: 46 topics, formula matrix, 9 interactive simulators, flashcards, and exam simulator.">
   <meta name="theme-color" content="#090d16">
-  <meta property="og:title" content="AI Mastery Lab - Daily AI Engineer Accelerator">
-  <meta property="og:description" content="Master RAG, Vector Search, AI Agents, Data Leakage, and Dockerized FastAPI deployments with gamified daily progression.">
+  <meta property="og:title" content="AI Mastery Lab - IITP-AIMLT-2601 Exam Accelerator">
+  <meta property="og:description" content="Master 46 curriculum topics across Python, NumPy, Pandas, SQL, ML Models, Evaluation Metrics, LLMs, RAG, and LangGraph.">
   <meta property="og:type" content="website">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="manifest" href="manifest.json">
@@ -20,27 +20,30 @@
   <header>
     <div class="header-container">
       <div class="logo-area">
-        <div class="logo-icon">⚡</div>
-        <div class="logo-text">
+        <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" onclick="toggleMainSidebar()" title="Toggle Navigation Sidebar">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="logo-icon" onclick="document.querySelector('[data-tab=\'tab-dashboard\']').click()">⚡</div>
+        <div class="logo-text" onclick="document.querySelector('[data-tab=\'tab-dashboard\']').click()">
           <h1>AI Mastery Lab</h1>
-          <span>Daily AI Engineer Accelerator</span>
+          <span>IITP-AIMLT-2601 Exam Studio</span>
         </div>
       </div>
 
       <div class="user-stats">
-        <div class="stat-pill streak-pill">
+        <div class="stat-pill streak-pill" title="Current Daily Streak">
           <i class="fas fa-fire"></i>
           <span><span id="streak-count">1</span> Day Streak</span>
         </div>
 
-        <div class="stat-pill" style="border-color: rgba(99, 102, 241, 0.4);">
+        <div class="stat-pill xp-pill" title="Total Accumulated XP">
           <i class="fas fa-star" style="color: #fbbf24;"></i>
           <span><span id="user-xp">0</span> XP</span>
         </div>
 
-        <div class="xp-progress-wrapper">
+        <div class="xp-progress-wrapper" title="Progress to Next Rank">
           <div class="xp-label">
-            <span id="user-level-title" style="font-weight: 700; color: #ffffff;">Lvl 1: LLM Explorer</span>
+            <span id="user-level-title">Lvl 1: AI Apprentice</span>
           </div>
           <div class="progress-bar-bg">
             <div class="progress-bar-fill" id="xp-progress-fill"></div>
@@ -59,7 +62,7 @@
 
     <!-- Left Navigation Sidebar -->
     <nav class="sidebar">
-      <div class="nav-section-title">Navigation</div>
+      <div class="nav-section-title">Main Menu</div>
       
       <a class="nav-item active" data-tab="tab-dashboard">
         <i class="fas fa-compass"></i>
@@ -67,18 +70,28 @@
       </a>
 
       <a class="nav-item" data-tab="tab-curriculum">
-        <i class="fas fa-book"></i>
-        <span>Knowledge Hub</span>
+        <i class="fas fa-book-open"></i>
+        <span>Knowledge Hub (46 Topics)</span>
+      </a>
+
+      <a class="nav-item" data-tab="tab-revision">
+        <i class="fas fa-bolt"></i>
+        <span>Formula & Quick Revision</span>
       </a>
 
       <a class="nav-item" data-tab="tab-visualizers">
-        <i class="fas fa-project-diagram"></i>
-        <span>Interactive Visualizers</span>
+        <i class="fas fa-sliders-h"></i>
+        <span>9 Interactive Simulators</span>
+      </a>
+
+      <a class="nav-item" data-tab="tab-flashcards">
+        <i class="fas fa-clone"></i>
+        <span>Spaced Flashcards</span>
       </a>
 
       <a class="nav-item" data-tab="tab-quizzes">
         <i class="fas fa-vial"></i>
-        <span>Quiz & Scenarios</span>
+        <span>Quiz & Exam Simulator</span>
       </a>
 
       <a class="nav-item" data-tab="tab-articulation">
@@ -98,80 +111,167 @@
       <!-- TAB 1: DAILY DASHBOARD -->
       <section id="tab-dashboard" class="tab-panel active">
         <div class="hero-banner">
-          <span class="module-tag" style="background: rgba(255,255,255,0.15); color: #ffffff;">Target Role: AI / GenAI Engineer</span>
-          <h1 class="hero-title">Daily AI Engineering & Interview Mastery</h1>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.6rem;">
+            <span class="module-tag" style="background: rgba(255,255,255,0.15); color: #ffffff;">IITP-AIMLT-2601 Evaluation Master</span>
+            <span class="module-tag" style="background: rgba(16, 185, 129, 0.2); color: var(--accent-success);">46 Topics Complete</span>
+          </div>
+          <h1 class="hero-title">IIT Patna AI/ML/DL & GenAI Exam Accelerator</h1>
           <p class="hero-desc">
-            Build production-grade mental models across LLMs, RAG, Vector Search, AI Agents, ML metrics, Data Leakage prevention, and Dockerized FastAPI deployments.
+            Complete interactive revision suite: master all 46 exam topics from Python fundamentals, NumPy, Pandas, and SQL to classical ML, Evaluation Metrics, LLMs, RAG, and LangGraph multi-agent orchestration.
           </p>
-          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.2rem;">
             <button class="btn" onclick="document.querySelector('[data-tab=\'tab-curriculum\']').click()">
-              <i class="fas fa-play"></i> Start Today's Curriculum
+              <i class="fas fa-book-open"></i> Explore 46 Curriculum Topics
             </button>
-            <button class="btn btn-secondary" onclick="document.querySelector('[data-tab=\'tab-articulation\']').click()">
-              <i class="fas fa-microphone"></i> Practice Interview Articulation
+            <button class="btn btn-secondary" onclick="document.querySelector('[data-tab=\'tab-revision\']').click()">
+              <i class="fas fa-bolt"></i> Quick Formula Matrix
+            </button>
+            <button class="btn btn-secondary" onclick="document.querySelector('[data-tab=\'tab-visualizers\']').click()">
+              <i class="fas fa-play"></i> 9 Interactive Simulators
+            </button>
+            <button class="btn btn-success" onclick="startMockExam()">
+              <i class="fas fa-stopwatch"></i> Start Timed Exam Simulator
             </button>
           </div>
         </div>
 
+        <!-- Learning Tracks Quick Access -->
         <div class="glass-card" style="margin-top: 1.5rem;">
-          <h3 class="card-title"><i class="fas fa-calendar-check" style="color: var(--accent-success);"></i> Daily Quests & Missions</h3>
-          <p class="card-subtitle">Complete daily missions to maintain your streak and level up your AI Engineer rank.</p>
-          <div class="quest-grid" id="daily-quests-container">
+          <h3 class="card-title"><i class="fas fa-layer-group" style="color: var(--accent-primary);"></i> 6 Learning Tracks Overview</h3>
+          <p class="card-subtitle">Quick jump into any exam track to study definitions, formulas, and code workflows.</p>
+          <div class="track-grid" id="dashboard-track-grid">
             <!-- Rendered by app.js -->
           </div>
         </div>
 
-        <!-- Flashcards Spaced Repetition Card on Dashboard -->
-        <div class="glass-card" style="margin-top: 1.5rem;">
-          <h3 class="card-title"><i class="fas fa-clone" style="color: var(--accent-cyan);"></i> Flashcard Spaced Repetition</h3>
-          <p class="card-subtitle">Click the card to flip between front and back. Test your quick recall on core metrics & definitions.</p>
-
-          <div class="flashcard-wrapper" onclick="this.classList.toggle('flipped')">
-            <div class="flashcard-inner">
-              <div class="flashcard-front">
-                <div class="flashcard-label">Front • Concept</div>
-                <div class="flashcard-text flashcard-front-text">Loading...</div>
-              </div>
-              <div class="flashcard-back">
-                <div class="flashcard-label">Back • Answer</div>
-                <div class="flashcard-text flashcard-back-text">Loading...</div>
-              </div>
+        <!-- Daily Quests & Quick Flashcard Section -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+          
+          <div class="glass-card">
+            <h3 class="card-title"><i class="fas fa-calendar-check" style="color: var(--accent-success);"></i> Daily Missions</h3>
+            <p class="card-subtitle">Complete daily missions to maintain your streak and level up your AI rank.</p>
+            <div class="quest-grid" id="daily-quests-container">
+              <!-- Rendered by app.js -->
             </div>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 1rem auto 0 auto;">
-            <button class="btn btn-secondary" onclick="prevFlashcard()"><i class="fas fa-arrow-left"></i> Previous</button>
-            <span class="flashcard-counter" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Card 1 of 8</span>
-            <button class="btn btn-secondary" onclick="nextFlashcard()">Next <i class="fas fa-arrow-right"></i></button>
+          <!-- Quick Flashcard Preview Card -->
+          <div class="glass-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <h3 class="card-title"><i class="fas fa-clone" style="color: var(--accent-cyan);"></i> Quick Flashcard Recall</h3>
+              <button class="btn-text" onclick="document.querySelector('[data-tab=\'tab-flashcards\']').click()">Open Deck <i class="fas fa-external-link-alt"></i></button>
+            </div>
+            <p class="card-subtitle">Click to flip. Spaced repetition for instant recall on core exam formulas & definitions.</p>
+
+            <div class="flashcard-wrapper" onclick="this.classList.toggle('flipped')">
+              <div class="flashcard-inner">
+                <div class="flashcard-front">
+                  <div class="flashcard-label">Front • Question / Concept</div>
+                  <div class="flashcard-text flashcard-front-text">Loading...</div>
+                </div>
+                <div class="flashcard-back">
+                  <div class="flashcard-label">Back • Answer & Formula</div>
+                  <div class="flashcard-text flashcard-back-text">Loading...</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+              <button class="btn btn-secondary" onclick="prevFlashcard()"><i class="fas fa-arrow-left"></i> Prev</button>
+              <span class="flashcard-counter" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Card 1 of 46</span>
+              <button class="btn btn-secondary" onclick="nextFlashcard()">Next <i class="fas fa-arrow-right"></i></button>
+            </div>
           </div>
+
         </div>
       </section>
 
-      <!-- TAB 2: KNOWLEDGE HUB (CURRICULUM) -->
+      <!-- TAB 2: KNOWLEDGE HUB (46 TOPICS) -->
       <section id="tab-curriculum" class="tab-panel">
         <div class="glass-card">
-          <h2 class="card-title"><i class="fas fa-graduation-cap" style="color: var(--accent-primary);"></i> AI Engineer Curriculum</h2>
-          <p class="card-subtitle">Select a daily module to study enhanced concepts, math formulas, and interview takeaways.</p>
-
-          <div class="module-selector" id="module-selector">
-            <!-- Rendered dynamically -->
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.8rem;">
+              <button class="btn btn-secondary btn-sm" onclick="toggleFullPageReader()" title="Toggle Topics Sidebar">
+                <i class="fas fa-columns"></i> Toggle Topics List
+              </button>
+              <div>
+                <h2 class="card-title" style="margin-bottom: 0.1rem;"><i class="fas fa-book-open" style="color: var(--accent-primary);"></i> Curriculum Hub (46 Topics)</h2>
+                <p class="card-subtitle" style="margin-bottom: 0;">Full syllabus of IITP-AIMLT-2601 Exam. Click a topic to study.</p>
+              </div>
+            </div>
+            
+            <div class="search-box">
+              <i class="fas fa-search search-icon"></i>
+              <input type="text" id="topic-search-input" class="search-input" placeholder="Search 46 topics, formulas, or keywords (e.g. Sigmoid, RAG, Gini, SQL)...">
+            </div>
           </div>
 
-          <div class="module-content-area" id="module-content-area">
-            <!-- Rendered dynamically -->
+          <!-- Track Filter Buttons -->
+          <div class="track-filter-bar" id="track-filter-bar">
+            <!-- Rendered by app.js -->
+          </div>
+
+          <div class="curriculum-layout">
+            <!-- Left Topic Sidebar List -->
+            <div class="topic-list-sidebar" id="topic-list-sidebar">
+              <!-- Rendered by app.js -->
+            </div>
+
+            <!-- Right Detail View -->
+            <div class="module-content-area" id="module-content-area">
+              <!-- Rendered dynamically -->
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- TAB 3: INTERACTIVE VISUALIZERS -->
-      <section id="tab-visualizers" class="tab-panel">
+      <!-- TAB 3: FORMULA & QUICK REVISION MATRIX -->
+      <section id="tab-revision" class="tab-panel">
         <div class="glass-card">
-          <h2 class="card-title"><i class="fas fa-project-diagram" style="color: var(--accent-cyan);"></i> RAG & Vector Search Simulator</h2>
-          <p class="card-subtitle">Test how document chunking, MiniLM embeddings, and cosine similarity retrieve context for LLMs.</p>
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+            <div>
+              <h2 class="card-title"><i class="fas fa-bolt" style="color: var(--accent-warning);"></i> Formula Matrix & Exam Quick Revision</h2>
+              <p class="card-subtitle">Master all core mathematical formulas, equations, and rules for fast exam revision.</p>
+            </div>
+            
+            <div class="formula-tag-filters" id="formula-tag-filters">
+              <button class="tag-pill active" onclick="filterFormulas('all')">All Formulas</button>
+              <button class="tag-pill" onclick="filterFormulas('Classification')">Classification</button>
+              <button class="tag-pill" onclick="filterFormulas('Regression')">Regression</button>
+              <button class="tag-pill" onclick="filterFormulas('Statistics')">Statistics</button>
+              <button class="tag-pill" onclick="filterFormulas('Decision Trees')">Decision Trees</button>
+              <button class="tag-pill" onclick="filterFormulas('GenAI')">GenAI & RAG</button>
+            </div>
+          </div>
+
+          <div class="formula-grid" id="formula-grid-container">
+            <!-- Rendered by app.js -->
+          </div>
+
+          <!-- Searchable Key Terms Directory -->
+          <div style="margin-top: 2.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+              <h3 class="card-title"><i class="fas fa-tags" style="color: var(--accent-cyan);"></i> Searchable Key Terms & Glossary</h3>
+              <input type="text" id="terms-search-input" class="search-input" style="max-width: 300px;" placeholder="Search 150+ key terms...">
+            </div>
+            <div class="key-terms-directory" id="key-terms-directory">
+              <!-- Rendered by app.js -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: 9 INTERACTIVE SIMULATORS -->
+      <section id="tab-visualizers" class="tab-panel">
+        
+        <!-- Visualizer 1: RAG Simulator -->
+        <div class="glass-card">
+          <h2 class="card-title"><i class="fas fa-project-diagram" style="color: var(--accent-cyan);"></i> 1. RAG & Vector Search Simulator (Topic 43 & 44)</h2>
+          <p class="card-subtitle">Test how document chunking, all-MiniLM embeddings, and cosine similarity retrieve context for LLMs.</p>
 
           <div class="vis-container">
             <div class="vis-controls">
-              <div class="control-group">
+              <div class="control-group" style="flex: 1;">
                 <label for="rag-query-input">User Input Query:</label>
                 <input type="text" id="rag-query-input" class="input-field" value="How many annual leave days can I carry forward?">
               </div>
@@ -184,13 +284,15 @@
           </div>
         </div>
 
+        <!-- Visualizer 2: Agent ReAct Loop -->
         <div class="glass-card">
-          <h2 class="card-title"><i class="fas fa-robot" style="color: var(--accent-warning);"></i> AI Agent ReAct Tool Loop Simulator</h2>
+          <h2 class="card-title"><i class="fas fa-robot" style="color: var(--accent-warning);"></i> 2. AI Agent ReAct Tool Loop Simulator (Topic 41 & 42)</h2>
           <p class="card-subtitle">Watch an AI Agent reason, invoke tools, observe API results, and execute multi-turn loops.</p>
 
           <div class="vis-container">
-            <div style="margin-bottom: 1rem;">
+            <div style="margin-bottom: 1rem; display: flex; gap: 1rem; align-items: center;">
               <button class="btn btn-secondary" id="step-agent-btn"><i class="fas fa-step-forward"></i> Execute Next Agent Step</button>
+              <button class="btn-text" id="reset-agent-btn"><i class="fas fa-redo"></i> Reset Loop</button>
             </div>
             <div class="vis-stage" id="agent-sim-stage">
               <p style="color: var(--text-muted); font-size: 0.9rem;">Click "Execute Next Agent Step" to step through the ReAct (Reason + Act) loop.</p>
@@ -198,14 +300,15 @@
           </div>
         </div>
 
+        <!-- Visualizer 3: Data Leakage Visualizer -->
         <div class="glass-card">
-          <h2 class="card-title"><i class="fas fa-shield-alt" style="color: var(--accent-pink);"></i> Data Leakage vs Leak-Free Pipeline Visualizer</h2>
+          <h2 class="card-title"><i class="fas fa-shield-alt" style="color: var(--accent-pink);"></i> 3. Data Leakage vs Leak-Free Pipeline Visualizer (Topic 26 & 37)</h2>
           <p class="card-subtitle">Compare how fitting transformers before CV vs inside scikit-learn Pipelines impacts validation vs production F1 score.</p>
 
           <div class="vis-container">
             <div class="vis-controls">
               <button class="btn btn-secondary" id="toggle-leaky-btn" style="border-color: #ef4444; color: #fca5a5;">
-                <i class="fas fa-bug"></i> Run Leaky Pipeline
+                <i class="fas fa-bug"></i> Run Leaky Pipeline (Full Scaling Pre-Split)
               </button>
               <button class="btn btn-success" id="toggle-clean-btn">
                 <i class="fas fa-check-circle"></i> Run Leak-Free Sklearn Pipeline
@@ -216,52 +319,273 @@
             </div>
           </div>
         </div>
-      </section>
 
-      <!-- TAB 4: QUIZZES & SCENARIOS -->
-      <section id="tab-quizzes" class="tab-panel">
+        <!-- Visualizer 4: Confusion Matrix & Metrics Tuner -->
         <div class="glass-card">
-          <h2 class="card-title"><i class="fas fa-vial" style="color: var(--accent-primary);"></i> Concept Quizzes & Debugging Arena</h2>
-          <p class="card-subtitle">Test your knowledge, earn XP, and solve real production case studies.</p>
-          <div id="quiz-list-container">
-            <!-- Rendered by app.js -->
+          <h2 class="card-title"><i class="fas fa-table" style="color: var(--accent-primary);"></i> 4. Confusion Matrix & Classification Metrics Tuner (Topic 33 & 34)</h2>
+          <p class="card-subtitle">Adjust TP, FP, TN, and FN sliders to observe real-time calculation of Precision, Recall, F1, Accuracy, and the Accuracy Paradox.</p>
+
+          <div class="vis-container">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.2rem;">
+              <div class="slider-group">
+                <label>True Positives (TP): <strong id="val-tp" style="color: var(--accent-success);">80</strong></label>
+                <input type="range" id="slider-tp" min="0" max="200" value="80" class="range-slider" oninput="updateConfusionMatrix()">
+              </div>
+              <div class="slider-group">
+                <label>False Positives (FP): <strong id="val-fp" style="color: #ef4444;">20</strong></label>
+                <input type="range" id="slider-fp" min="0" max="200" value="20" class="range-slider" oninput="updateConfusionMatrix()">
+              </div>
+              <div class="slider-group">
+                <label>False Negatives (FN): <strong id="val-fn" style="color: #ef4444;">10</strong></label>
+                <input type="range" id="slider-fn" min="0" max="200" value="10" class="range-slider" oninput="updateConfusionMatrix()">
+              </div>
+              <div class="slider-group">
+                <label>True Negatives (TN): <strong id="val-tn" style="color: var(--accent-cyan);">150</strong></label>
+                <input type="range" id="slider-tn" min="0" max="500" value="150" class="range-slider" oninput="updateConfusionMatrix()">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+              <div class="metric-badge">
+                <span class="metric-lbl">Precision (Exactness)</span>
+                <span class="metric-val" id="metric-precision">0.800</span>
+                <span class="metric-sub">TP / (TP + FP)</span>
+              </div>
+              <div class="metric-badge">
+                <span class="metric-lbl">Recall / TPR (Completeness)</span>
+                <span class="metric-val" id="metric-recall">0.889</span>
+                <span class="metric-sub">TP / (TP + FN)</span>
+              </div>
+              <div class="metric-badge">
+                <span class="metric-lbl">F1-Score (Harmonic Mean)</span>
+                <span class="metric-val" id="metric-f1">0.842</span>
+                <span class="metric-sub">2*(P*R)/(P+R)</span>
+              </div>
+              <div class="metric-badge">
+                <span class="metric-lbl">Accuracy</span>
+                <span class="metric-val" id="metric-accuracy">0.885</span>
+                <span class="metric-sub">(TP+TN)/Total</span>
+              </div>
+              <div class="metric-badge">
+                <span class="metric-lbl">FPR (False Alarm Rate)</span>
+                <span class="metric-val" id="metric-fpr">0.118</span>
+                <span class="metric-sub">FP / (FP + TN)</span>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
+              <button class="btn btn-secondary btn-sm" onclick="setConfusionPreset('balanced')">Preset: Balanced</button>
+              <button class="btn btn-secondary btn-sm" onclick="setConfusionPreset('imbalanced')">Preset: 99% Imbalanced (Accuracy Paradox)</button>
+              <button class="btn btn-secondary btn-sm" onclick="setConfusionPreset('perfect')">Preset: Perfect (F1 = 1.0)</button>
+            </div>
           </div>
         </div>
 
+        <!-- Visualizer 5: Sigmoid & Decision Threshold Explorer -->
         <div class="glass-card">
-          <h2 class="card-title"><i class="fas fa-clone" style="color: var(--accent-cyan);"></i> Flashcard Spaced Repetition</h2>
-          <p class="card-subtitle">Click the card to flip between front and back. Test your quick recall on core metrics & definitions.</p>
+          <h2 class="card-title"><i class="fas fa-chart-line" style="color: var(--accent-success);"></i> 5. Sigmoid Curve & Decision Threshold Explorer (Topic 32 & 36)</h2>
+          <p class="card-subtitle">Adjust the decision threshold slider from 0.0 to 1.0 to see how it affects classification probability and trade-offs.</p>
 
-          <div class="flashcard-wrapper" onclick="this.classList.toggle('flipped')">
+          <div class="vis-container">
+            <div class="slider-group" style="margin-bottom: 1.2rem;">
+              <div style="display: flex; justify-content: space-between;">
+                <label>Classification Threshold ($t$):</label>
+                <strong id="threshold-val-display" style="color: var(--accent-warning); font-size: 1.1rem;">0.50</strong>
+              </div>
+              <input type="range" id="sigmoid-threshold-slider" min="0.05" max="0.95" step="0.05" value="0.50" class="range-slider" oninput="updateSigmoidSimulator()">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;" id="sigmoid-output-grid">
+              <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-md); border-left: 3px solid var(--accent-cyan);">
+                <h4 style="font-size: 0.9rem; color: #ffffff; margin-bottom: 0.4rem;">Threshold Policy & Use Case</h4>
+                <p id="threshold-policy-text" style="font-size: 0.85rem; color: var(--text-muted);">Default standard cutoff (0.50). Equal priority to false positives and false negatives.</p>
+              </div>
+              <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-md); border-left: 3px solid var(--accent-success);">
+                <h4 style="font-size: 0.9rem; color: #ffffff; margin-bottom: 0.4rem;">Example Predictions ($z \to p \to \text{Class}$)</h4>
+                <div id="sigmoid-samples-list" style="font-size: 0.82rem; font-family: var(--font-code); color: #e5e7eb;">
+                  <!-- Rendered by app.js -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visualizer 6: Decision Tree Splitter & Gini / Entropy Calculator -->
+        <div class="glass-card">
+          <h2 class="card-title"><i class="fas fa-code-branch" style="color: var(--accent-warning);"></i> 6. Decision Tree Split: Gini & Entropy Calculator (Topic 35)</h2>
+          <p class="card-subtitle">Enter sample distribution counts to compute Gini Impurity and Shannon Entropy live with step-by-step math.</p>
+
+          <div class="vis-container">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+              <div>
+                <label>Class 0 (e.g. No) Count:</label>
+                <input type="number" id="dt-c0" class="input-field" value="9" min="0" oninput="calculateTreeImpurity()">
+              </div>
+              <div>
+                <label>Class 1 (e.g. Yes) Count:</label>
+                <input type="number" id="dt-c1" class="input-field" value="5" min="0" oninput="calculateTreeImpurity()">
+              </div>
+            </div>
+
+            <div id="tree-impurity-results" style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-md); font-size: 0.9rem;">
+              <!-- Rendered by app.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Visualizer 7: SQL Joins Interactive Diagram -->
+        <div class="glass-card">
+          <h2 class="card-title"><i class="fas fa-database" style="color: var(--accent-cyan);"></i> 7. SQL Joins Interactive Visualizer (Topic 19)</h2>
+          <p class="card-subtitle">Click the join types below to visualize Venn diagram intersections and resulting merged tables.</p>
+
+          <div class="vis-container">
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+              <button class="btn btn-secondary active" id="join-btn-inner" onclick="showSQLJoin('inner')">INNER JOIN</button>
+              <button class="btn btn-secondary" id="join-btn-left" onclick="showSQLJoin('left')">LEFT JOIN</button>
+              <button class="btn btn-secondary" id="join-btn-right" onclick="showSQLJoin('right')">RIGHT JOIN</button>
+              <button class="btn btn-secondary" id="join-btn-outer" onclick="showSQLJoin('outer')">FULL OUTER JOIN</button>
+            </div>
+
+            <div id="sql-join-stage">
+              <!-- Rendered by app.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Visualizer 8: K-Means Clustering Simulator -->
+        <div class="glass-card">
+          <h2 class="card-title"><i class="fas fa-chart-pie" style="color: var(--accent-pink);"></i> 8. K-Means 4-Step Convergence Simulator (Topic 38)</h2>
+          <p class="card-subtitle">Step through K-Means centroid initialization, distance assignment, centroid update, and convergence.</p>
+
+          <div class="vis-container">
+            <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+              <button class="btn btn-secondary" id="kmeans-step-btn" onclick="stepKMeans()"><i class="fas fa-step-forward"></i> Next K-Means Step</button>
+              <button class="btn-text" onclick="resetKMeans()"><i class="fas fa-redo"></i> Reset Clusters</button>
+              <span id="kmeans-step-label" style="font-size: 0.85rem; color: var(--accent-cyan); font-weight: 600;">Step 0: Unassigned Points</span>
+            </div>
+            <div id="kmeans-stage" style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-md);">
+              <!-- Rendered by app.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Visualizer 9: LangGraph Multi-Agent Router -->
+        <div class="glass-card">
+          <h2 class="card-title"><i class="fas fa-network-wired" style="color: var(--accent-primary);"></i> 9. LangGraph State Machine & Intent Router (Topic 46)</h2>
+          <p class="card-subtitle">Simulate how a LangGraph State Graph routes queries conditionally to specialized agent nodes.</p>
+
+          <div class="vis-container">
+            <div class="vis-controls">
+              <div class="control-group" style="flex: 1;">
+                <label>User Query for LangGraph Router:</label>
+                <input type="text" id="langgraph-query-input" class="input-field" value="Where can I download my latest invoice for refund?">
+              </div>
+              <button class="btn" onclick="runLangGraphRouter()"><i class="fas fa-play"></i> Route Query</button>
+            </div>
+            <div id="langgraph-stage" style="margin-top: 1rem;">
+              <!-- Rendered by app.js -->
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- TAB 5: SPACED FLASHCARDS -->
+      <section id="tab-flashcards" class="tab-panel">
+        <div class="glass-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+            <div>
+              <h2 class="card-title"><i class="fas fa-clone" style="color: var(--accent-cyan);"></i> Flashcard Spaced Repetition Deck</h2>
+              <p class="card-subtitle">46 flashcards covering all exam topics. Filter by track, flip with click or spacebar, and test recall.</p>
+            </div>
+
+            <!-- Track Filter for Flashcards -->
+            <select id="flashcard-track-select" class="input-field" style="max-width: 260px;" onchange="filterFlashcardTrack(this.value)">
+              <option value="all">All Tracks (46 Cards)</option>
+              <option value="track1">Track 1: Foundations & Python</option>
+              <option value="track2">Track 2: NumPy, Pandas & SQL</option>
+              <option value="track3">Track 3: Viz, EDA, APIs & Scraping</option>
+              <option value="track4">Track 4: ML Foundations</option>
+              <option value="track5">Track 5: Models & Evaluation</option>
+              <option value="track6">Track 6: LLMs, RAG & Agents</option>
+            </select>
+          </div>
+
+          <div class="flashcard-wrapper" onclick="this.classList.toggle('flipped')" style="min-height: 240px;">
             <div class="flashcard-inner">
               <div class="flashcard-front">
-                <div class="flashcard-label">Front • Concept</div>
+                <div class="flashcard-label">Front • Question / Concept (Click to flip)</div>
                 <div class="flashcard-text flashcard-front-text">Loading...</div>
               </div>
               <div class="flashcard-back">
-                <div class="flashcard-label">Back • Answer</div>
+                <div class="flashcard-label">Back • Answer / Solution</div>
                 <div class="flashcard-text flashcard-back-text">Loading...</div>
               </div>
             </div>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 0 auto;">
+          <div style="display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 1.5rem auto 0 auto;">
             <button class="btn btn-secondary" onclick="prevFlashcard()"><i class="fas fa-arrow-left"></i> Previous</button>
-            <span class="flashcard-counter" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Card 1 of 8</span>
+            <span class="flashcard-counter" style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">Card 1 of 46</span>
             <button class="btn btn-secondary" onclick="nextFlashcard()">Next <i class="fas fa-arrow-right"></i></button>
           </div>
         </div>
       </section>
 
-      <!-- TAB 5: INTERVIEW ARTICULATION STUDIO -->
+      <!-- TAB 6: QUIZZES & TIMED EXAM SIMULATOR -->
+      <section id="tab-quizzes" class="tab-panel">
+        
+        <!-- Exam Simulator Banner -->
+        <div class="glass-card" style="border-color: rgba(99, 102, 241, 0.4); background: linear-gradient(135deg, rgba(17, 24, 39, 0.9), rgba(99, 102, 241, 0.15));">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <span class="module-tag" style="background: rgba(99, 102, 241, 0.3); color: #ffffff;"><i class="fas fa-stopwatch"></i> Exam Practice</span>
+              <h2 class="card-title" style="margin-top: 0.4rem;">IITP-AIMLT-2601 Timed Mock Exam Simulator</h2>
+              <p class="card-subtitle">Take a timed 10-question evaluation drawn randomly across all 46 topics. Instant scoring and detailed solution report.</p>
+            </div>
+            <button class="btn btn-success" onclick="startMockExam()"><i class="fas fa-play"></i> Start Timed Exam (10 Qs)</button>
+          </div>
+
+          <!-- Exam Runtime Container -->
+          <div id="mock-exam-runtime" style="display: none; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <span id="exam-timer-display" style="font-family: var(--font-code); font-size: 1.1rem; color: var(--accent-warning); font-weight: bold;"><i class="fas fa-clock"></i> Time Remaining: 05:00</span>
+              <span id="exam-progress-counter" style="font-size: 0.9rem; color: var(--text-muted);">Question 1 of 10</span>
+            </div>
+            <div id="exam-question-box">
+              <!-- Rendered by app.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Topic Quizzes List -->
+        <div class="glass-card" style="margin-top: 1.5rem;">
+          <h2 class="card-title"><i class="fas fa-vial" style="color: var(--accent-primary);"></i> Daily Concept Quizzes</h2>
+          <p class="card-subtitle">Practice self-paced topic quizzes, earn XP, and lock in core fundamentals.</p>
+          <div id="quiz-list-container">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+
+        <!-- Scenario Debugging -->
+        <div class="glass-card" style="margin-top: 1.5rem;">
+          <h2 class="card-title"><i class="fas fa-bug" style="color: var(--accent-pink);"></i> Production Scenario Debugging Arena</h2>
+          <p class="card-subtitle">Analyze real production failure cases, isolate root causes, and propose engineering fixes.</p>
+          <div id="scenario-list-container">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 7: INTERVIEW ARTICULATION STUDIO -->
       <section id="tab-articulation" class="tab-panel">
         <div class="glass-card">
-          <h2 class="card-title"><i class="fas fa-microphone" style="color: var(--accent-warning);"></i> AI Engineer Interview Articulation Studio</h2>
-          <p class="card-subtitle">Practice answering top interview questions out loud or in writing. Receive keyword feedback and compare against Gold Standard Model Answers.</p>
+          <h2 class="card-title"><i class="fas fa-microphone" style="color: var(--accent-warning);"></i> Technical & Exam Articulation Studio</h2>
+          <p class="card-subtitle">Practice articulating answers for evaluation questions. Real-time keyword detector scores your responses against Gold Standard answers.</p>
 
           <div class="articulation-box">
             <div class="control-group" style="margin-bottom: 1.2rem;">
-              <label for="articulation-question-select">Select Interview Question:</label>
+              <label for="articulation-question-select">Select Practice Question:</label>
               <select id="articulation-question-select" class="input-field" style="font-size: 0.95rem; font-weight: 600;">
                 <!-- Populated dynamically -->
               </select>
@@ -273,13 +597,13 @@
             </div>
 
             <div style="margin-bottom: 0.6rem; font-size: 0.82rem; color: var(--text-muted); font-weight: 600;">
-              Key Concept Keywords Checklist (Light up as you mention them):
+              Key Concept Keywords Checklist (Light up as you type them):
             </div>
             <div class="keyword-chips-area" id="art-keyword-chips">
               <!-- Keyword chips rendered dynamically -->
             </div>
 
-            <textarea id="articulation-input" class="textarea-field" placeholder="Type or dictate your answer here out loud (e.g. 'I am an AI/ML Engineer with experience across RAG, ChromaDB embeddings, scikit-learn pipelines...')"></textarea>
+            <textarea id="articulation-input" class="textarea-field" placeholder="Type your answer here (e.g. 'I am an AI/ML Engineer experienced in building leak-free pipelines, RAG with ChromaDB, and FastAPI...')."></textarea>
 
             <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
               <button class="btn btn-success" id="evaluate-articulation-btn">
@@ -288,18 +612,18 @@
             </div>
 
             <div class="gold-answer-box" id="gold-answer-box">
-              <h4><i class="fas fa-star"></i> Gold Standard Interview Model Answer</h4>
+              <h4><i class="fas fa-star"></i> Gold Standard Model Answer</h4>
               <p id="gold-answer-content" style="font-size: 0.92rem; color: #e5e7eb; white-space: pre-line;"></p>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- TAB 6: ACHIEVEMENTS & BADGES -->
+      <!-- TAB 8: ACHIEVEMENTS & BADGES -->
       <section id="tab-achievements" class="tab-panel">
         <div class="glass-card">
           <h2 class="card-title"><i class="fas fa-trophy" style="color: #fbbf24;"></i> Achievements & Unlockable Badges</h2>
-          <p class="card-subtitle">Earn badges as you maintain daily learning streaks, complete quizzes, and master interview drills.</p>
+          <p class="card-subtitle">Earn badges as you maintain daily learning streaks, complete curriculum modules, and score high on quizzes and exams.</p>
           <div class="badge-grid" id="badge-gallery-container">
             <!-- Rendered by app.js -->
           </div>
@@ -317,10 +641,10 @@
       <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.2rem;">Congratulations! You reached Level <span id="modal-level-num">2</span></p>
       
       <div style="background: rgba(99, 102, 241, 0.15); border: 1px solid var(--accent-primary); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem;">
-        <h3 id="modal-level-title" style="color: var(--accent-primary); font-size: 1.2rem;">Prompt & API Craftsman</h3>
+        <h3 id="modal-level-title" style="color: var(--accent-primary); font-size: 1.2rem;">Python & Data Explorer</h3>
       </div>
 
-      <button class="btn" onclick="closeModal()">Continue Accelerator <i class="fas fa-arrow-right"></i></button>
+      <button class="btn" onclick="closeModal()">Continue Learning <i class="fas fa-arrow-right"></i></button>
     </div>
   </div>
 

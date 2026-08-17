@@ -1,116 +1,116 @@
-# ⚡ AI Mastery Lab - Daily AI Engineer Accelerator & Interview Studio
+# ⚡ AI Mastery Lab — IITP-AIMLT-2601 Exam Accelerator & Interactive Studio
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-indigo.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/vikas-pydev/AI-DailyLoop)
 [![PWA Ready](https://img.shields.io/badge/PWA-Ready-emerald.svg)](sw.js)
+[![Netlify Status](https://img.shields.io/badge/Netlify-Auto--Deploy-00C7B7.svg)](https://app.netlify.com)
 [![Stack](https://img.shields.io/badge/Tech-HTML5%20%7C%20CSS3%20%7C%20JS-pink.svg)](index.html)
 
-**AI Mastery Lab** is a gamified, interactive web application built to help aspiring **AI Engineers, GenAI Engineers, and Applied ML Engineers** master production concepts, run interactive system visualizers, test their knowledge with real-world scenario debugging, and practice articulating technical responses for interviews.
+**AI Mastery Lab** is a gamified, interactive learning platform and exam revision studio built specifically for the **IITP-AIMLT-2601 Certification Exam** (Certificate Program in Artificial Intelligence and Machine Learning).
+
+It combines **all 46 curriculum topics**, **9 interactive visual simulators**, a **formula revision matrix**, a **150+ key terms directory**, a **spaced repetition flashcard engine**, a **timed mock exam simulator**, and an **interview articulation studio** with zero external runtime dependencies.
 
 ---
 
-## 🌟 Key Features & Highlights
+## 🌟 Comprehensive Features
 
-### 1. 🏆 Gamified Progress & Level System
-- **Daily Streak Engine (🔥):** Tracks consecutive daily check-ins with exponential streak XP multipliers.
-- **10 Level Ranks:** Progress from *Level 1: LLM Explorer* up to *Level 10: Principal AI Engineer*.
-- **Daily Quests & Missions:** Complete 3 daily missions (Study Curriculum, Run Simulators, Practice Articulation).
-- **Unlockable Badges & Achievements:** Earn 8 unique badges (*RAG Whisperer*, *Data Leakage Ninja*, *Agent Commander*, *Interview Silver Tongue*).
-- **LocalStorage Persistence:** 100% offline progress saving across browser restarts.
-
----
-
-### 2. 📇 Flashcard Spaced Repetition (Dashboard & Quiz Tab)
-- Interactive 3D flip card deck directly embedded on the **Daily Dashboard**.
-- Quick recall practice on core formulas: **Precision**, **Recall**, **F1-Score**, **Cosine Similarity**, **ReAct Loops**, and **Scikit-Learn Pipelines**.
-- Supports keyboard navigation (Left/Right Arrow keys to cycle, Spacebar to flip card).
-
----
-
-### 3. 📚 Enhanced Daily Knowledge Hub (Days 1–5)
-- **Day 1: AI Engineer Role & LLM vs AI Application Architecture** — Token prediction mechanics, model boundaries vs AI applications, API key security, and `.env` isolation.
-- **Day 2: RAG Architectures, Embeddings & Vector Databases** — Chunking strategies, `all-MiniLM-L6-v2` dense embeddings, Cosine Similarity equations, HNSW index search, and ChromaDB integration.
-- **Day 3: AI Agents, Tool Calling & State Machines (LangGraph)** — ReAct (Reason + Act) tool loops, Pydantic schemas, and state-machine graph routing.
-- **Day 4: ML Engineering: Metrics, Data Leakage & Model Selection** — Precision vs Recall vs F1 tradeoffs, preventing cross-validation data leakage using `sklearn.pipeline.Pipeline`, and Logistic Regression vs XGBoost/Random Forest.
-- **Day 5: Production Deployment & Case Studies (Zepto Platform & EPL)** — Walkthrough of the Zepto Enterprise AI Platform (133 scraped datasets, 891 records, 3NF SQLite, CV F1 = 0.7824, 76 Pytest suites, FastAPI, Docker, and `MOCK_LLM=1` offline testing).
+### 1. 📚 46-Topic Knowledge Hub Across 6 Learning Tracks
+Fully mapped to the official **IITP-AIMLT-2601 Study Guide**:
+- **Track 1: Foundations & Python Mastery (Topics 1–11):**
+  - AI/ML/DL/GenAI hierarchy, Computer hardware (CPU vs GPU), OS Kernel, Compiler vs Interpreter, Colab/.py/.ipynb workflows, CLI & Git/PAT security, Python variables & dynamic typing, Conditionals, Loops, Functions & `*args`, Scope, and Data structures (Lists, Dicts, Tuples, Sets, File I/O).
+- **Track 2: Numerical Computing, Pandas & SQL (Topics 12–19):**
+  - NumPy ndarrays, Vectorization, Broadcasting rules, Z-scores, Pandas Series & DataFrames, `.iloc` vs `.loc`, JSON serialization, Boolean indexing, Missing data handling (`dropna`, `fillna`, `ffill`/`bfill`), `groupby().agg()`, RDBMS fundamentals, Core SQL clauses (`SELECT`, `WHERE`, `GROUP BY`, `HAVING`, `ORDER BY`), Normalization (1NF to 3NF), and 4 SQL Joins (`INNER`, `LEFT`, `RIGHT`, `FULL OUTER`).
+- **Track 3: Visualization, EDA, APIs & Web Scraping (Topics 20–25):**
+  - Matplotlib 3-layer architecture, 1.5×IQR Outlier Detection Rule, Box & Violin plots, Pearson Correlation Matrix & Heatmaps, REST APIs, JSON ETL Pipelines, and Beautiful Soup scraping.
+- **Track 4: ML Foundations & Preprocessing (Topics 26–28):**
+  - Supervised vs Unsupervised vs RL, 6-stage ML lifecycle, Data Leakage prevention, Missing data mechanisms (MCAR, MAR, MNAR), One-Hot vs Label encoding, 3-Sigma Empirical Rule (68-95-99.7), and Feature Scaling (`StandardScaler` vs `MinMaxScaler`).
+- **Track 5: Regression, Classification & Model Evaluation (Topics 29–38):**
+  - Linear Regression ($y=mx+c$, SSE, SGD), Regression Metrics (MAE, MSE, RMSE, $R^2$, Adjusted $R^2$), Ridge (L2) vs Lasso (L1) Regularization, Logistic Regression & Sigmoid, Confusion Matrix (TP, FP, TN, FN), Precision, Recall, F1-Score, Accuracy Paradox, Handling Imbalanced Data (SMOTE, Class Weights), Decision Trees (Shannon Entropy & Gini Impurity), Random Forests & Bagging, ROC Curves & AUC Threshold Tuning, `ColumnTransformer` + `Pipeline`, and K-Means Clustering & Silhouette Coefficient.
+- **Track 6: LLMs, Prompt Engineering, Agents, RAG & LangGraph (Topics 39–46):**
+  - Transformer architecture, Autoregressive next-token prediction, Q/K/V Self-Attention, RCTFL Prompt Engineering Framework, Few-Shot & Chain-of-Thought, ReAct Agent Loops, Structured JSON outputs (Pydantic), Dense Embeddings & Cosine Similarity, 2-phase RAG architecture, FastAPI + Docker, and LangGraph Multi-Agent State Machines.
 
 ---
 
-### 4. 🎛️ Live Interactive Simulators
-- **RAG Vector Search Simulator:** Input custom queries, view 384-dimensional vector embeddings, compute Cosine Similarity scores, sort document chunks dynamically, and inspect constructed LLM context prompts.
-- **AI Agent ReAct Tool Loop Simulator:** Step-by-step interactive execution of User Goal $\rightarrow$ Thought $\rightarrow$ Tool Action (`get_user_tickets`) $\rightarrow$ Observation $\rightarrow$ Final Output.
-- **Data Leakage Visualizer:** Side-by-side comparison of a Leaky Pipeline (scaling full dataset before CV split leading to fake 0.98 F1 and production crash) vs a Leak-Free Sklearn Pipeline (scaling strictly inside training folds resulting in stable 0.78 F1).
+### 2. 🎛️ 9 Interactive Simulators
+1. **RAG Vector Search Simulator:** Computes 384-dimensional vector embeddings, ranks documents by Cosine Similarity, and constructs grounded LLM context prompts.
+2. **AI Agent ReAct Loop Simulator:** Interactive step-by-step execution of Thought $\to$ Action (`get_user_tickets`) $\to$ Observation $\to$ Final Answer.
+3. **Data Leakage Visualizer:** Live interactive comparison of a Leaky Pipeline (preprocessing before split) vs a Leak-Free Sklearn Pipeline.
+4. **Confusion Matrix & Metrics Tuner:** Real-time sliders for TP, FP, TN, FN dynamically calculating Precision, Recall, F1, Accuracy, and FPR, with presets demonstrating the *Accuracy Paradox*.
+5. **Sigmoid Curve & Decision Threshold Explorer:** Interactive threshold slider ($0.0 \to 1.0$) showcasing sensitivity trade-offs (Cancer Screening vs Spam Filtering).
+6. **Decision Tree Split & Gini / Entropy Calculator:** Live computation of Gini Impurity and Shannon Entropy based on class distribution inputs.
+7. **SQL Joins Visualizer:** Visual switch between `INNER`, `LEFT`, `RIGHT`, and `FULL OUTER` joins with dynamic joined table rendering.
+8. **K-Means 4-Step Convergence Simulator:** Step-by-step centroid initialization, distance assignment, centroid update, and convergence.
+9. **LangGraph Multi-Agent Router:** Interactive state-graph query classifier routing requests to Billing, HR, or General agent nodes.
 
 ---
 
-### 5. 🎤 Interview Articulation Studio
-- **Top Interview Prompts:** Includes high-priority questions (*Tell me about yourself*, *Walk me through your RAG system*, *What is Data Leakage?*, *Precision vs Recall vs F1*).
-- **Real-Time Keyword Analyzer:** Scans answer text in real time and lights up detected key concept chips (`ChromaDB`, `all-MiniLM-L6-v2`, `scikit-learn pipeline`, `F1-score`).
-- **Gold Standard Comparison:** Reveals comprehensive interview model answers and provides structure scoring (Problem $\rightarrow$ Solution $\rightarrow$ Result).
+### 3. ⚡ Formula Revision Matrix & 150+ Key Terms Directory
+- Quick revision cards with LaTeX equations and plain representations for all core exam formulas.
+- Tag filters: *Classification*, *Regression*, *Statistics*, *Decision Trees*, *GenAI & RAG*.
+- Searchable Key Terms Directory with instant jump links to relevant topics.
 
 ---
 
-## 🏗️ System Architecture
-
-### RAG Pipeline Mechanics
-```
-[User Query] ---> [Query Embedding (all-MiniLM-L6-v2)]
-                         |
-                         v
-              [Cosine Similarity Search] <--- [ChromaDB Chunks]
-                         |
-                         v
-                 [Top-K Context]
-                         |
-                         v
-             [LLM Grounded Answer + Citations]
-```
-
-### Agent ReAct Loop Execution
-```
-User Goal ---> [LLM Reasoner] ---> Decides Tool Call (e.g. call_api)
-                    ^                         |
-                    |                         v
-               Observe Result <--- Execute Function
-```
+### 4. 📇 Spaced Repetition Flashcards Deck (46+ Cards)
+- Filterable by track with 3D flip animation, shuffle, and full keyboard navigation (Spacebar to flip, Arrow keys to cycle).
 
 ---
 
-## 🚀 Quick Start & Local Setup
+### 5. ⏱️ IITP Timed Mock Exam Simulator
+- 10 randomized exam questions drawn across all 46 topics with a 5-minute countdown timer, automated score breakdown, XP rewards, and detailed answer explanations.
 
-### Option 1: Direct File Launch
-Simply open [`index.html`](index.html) in your browser! Zero dependencies required.
+---
 
-### Option 2: Running via NPM Server
+### 6. 📖 Full Page Reader & Collapsible Navigation Sidebars
+- **Collapsible Main Navigation:** Hamburger toggle (`☰`) in the header cycles between Expanded (`260px`), Compact Icon (`78px`), and Full Viewport (`100%`) modes.
+- **Full Page / Zen Reader Mode:** Expand any topic across the entire screen for distraction-free study.
+- **Font Size Scaler ($A-$ / $A+$):** Dynamic font scaling from 15px to 23px for comfortable reading.
+- **Chapter Navigation:** Previous & Next topic buttons at the bottom of every chapter.
+
+---
+
+## 🛠️ Tech Stack & Architecture
+
+- **Frontend:** Pure Vanilla HTML5, CSS3, Modern JavaScript (ES6+). Zero heavy frontend frameworks or build steps required.
+- **Formulas & Typography:** Custom mathematical formatter converting LaTeX notation to clean Unicode equations.
+- **Persistence:** LocalStorage state management (`ai_mastery_iitp_v2`) tracking XP, level, daily streak, completed topics, badges, and exam scores.
+- **PWA & Offline Support:** Service Worker (`sw.js`) with cache-first strategy for 100% offline functionality.
+
+---
+
+## 🚀 Running Locally
+
+You can run AI Mastery Lab locally with any static web server:
+
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/ai-mastery-lab.git
-cd ai-mastery-lab
+# 1. Clone the repository
+git clone https://github.com/vikas-pydev/AI-DailyLoop.git
+cd AI-DailyLoop
 
-# Start local server
-npm install
-npm start
+# 2. Start a local preview server
+npx serve . -p 8080
+
+# 3. Open in browser
+http://localhost:8080
 ```
-Open **`http://localhost:8080`** in your browser.
 
 ---
 
-## 📲 Progressive Web App (PWA) Offline Support
+## ☁️ Continuous Deployment to Netlify
 
-AI Mastery Lab includes a built-in Service Worker (`sw.js`) and Web Manifest (`manifest.json`). You can install it as a native desktop or mobile application and learn completely offline anywhere!
+This repository is configured for **automatic continuous deployment on Netlify**:
+
+1. **Automatic Git Push Deployments:**
+   - Every push to the `main` branch automatically triggers a fresh build and deploy on Netlify.
+2. **`netlify.toml` Configuration:**
+   - Built-in CDN caching, PWA header settings, and single-page routing redirects are pre-configured in [`netlify.toml`](./netlify.toml).
+3. **Manual Deploy via Netlify CLI (Optional):**
+   ```bash
+   npx netlify-cli deploy --prod --dir=.
+   ```
 
 ---
 
-## 🛡️ Target Roles & Career Positioning
+## 📜 License
 
-This laboratory is specifically tailored for engineers aiming for roles such as:
-- **AI Engineer / LLM Engineer**
-- **Generative AI Application Engineer**
-- **Applied Machine Learning Engineer**
-- **GenAI Solutions Architect**
-
----
-
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE). Feel free to use, modify, and contribute!
+MIT License © 2026 [Vikas](https://github.com/vikas-pydev). Built for the IITP-AIMLT-2601 Program.

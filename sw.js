@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ai-mastery-lab-v1';
+const CACHE_NAME = 'ai-mastery-lab-v2';
 const ASSETS = [
   './',
   './index.html',
