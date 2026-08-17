@@ -1,7 +1,7 @@
 # ⚡ AI Mastery Lab - Daily AI Engineer Accelerator & Interview Studio
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-indigo.svg)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/your-username/ai-mastery-lab)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/vikas-pydev/AI-DailyLoop)
 [![PWA Ready](https://img.shields.io/badge/PWA-Ready-emerald.svg)](sw.js)
 [![Stack](https://img.shields.io/badge/Tech-HTML5%20%7C%20CSS3%20%7C%20JS-pink.svg)](index.html)
 

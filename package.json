@@ -18,7 +18,11 @@
     "gamification",
     "pwa"
   ],
-  "author": "AI Mastery Lab",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vikas-pydev/AI-DailyLoop.git"
+  },
+  "author": "vikas-pydev",
   "license": "MIT",
   "devDependencies": {
     "serve": "^14.2.1"
