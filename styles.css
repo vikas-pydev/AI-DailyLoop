@@ -1439,27 +1439,273 @@ header {
   to { opacity: 1; transform: scale(1); }
 }
 
-/* Responsive Rules */
+/* ==========================================================================
+   COMPREHENSIVE RESPONSIVE DESIGN SYSTEM (MOBILE, TABLET & DESKTOP)
+   ========================================================================== */
+
+/* Tablet & Smaller Laptops (<= 1024px) */
 @media (max-width: 1024px) {
   .main-layout {
     grid-template-columns: 1fr;
+    padding: 0 1.2rem;
+    gap: 1.2rem;
   }
+
   .sidebar {
     position: static;
     flex-direction: row;
     overflow-x: auto;
     white-space: nowrap;
-    padding: 0.6rem;
+    padding: 0.75rem 1rem;
+    gap: 0.6rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
-  .nav-section-title { display: none; }
+
+  .sidebar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-section-title {
+    display: none;
+  }
+
+  .nav-item {
+    padding: 0.6rem 1rem;
+    flex-shrink: 0;
+  }
+
   .curriculum-layout {
     grid-template-columns: 1fr;
   }
+
+  .topic-list-sidebar {
+    position: static;
+    max-height: 280px;
+    margin-bottom: 1.5rem;
+  }
+
+  .module-content-area {
+    padding: 2rem 1.8rem;
+  }
 }
 
-@media (max-width: 600px) {
-  header { padding: 0.8rem 1rem; }
-  .logo-text h1 { font-size: 1.1rem; }
-  .main-layout { padding: 0 0.8rem; }
-  .hero-title { font-size: 1.4rem; }
+/* Mobile Devices (<= 768px) */
+@media (max-width: 768px) {
+  /* Header & Navigation */
+  header {
+    padding: 0.6rem 0.8rem;
+  }
+
+  .header-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+  }
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .logo-text h1 {
+    font-size: 1.15rem;
+  }
+
+  .logo-text span {
+    font-size: 0.72rem;
+  }
+
+  .user-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    width: 100%;
+    padding-top: 0.4rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .stat-pill {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.76rem;
+  }
+
+  .xp-progress-wrapper {
+    width: 100%;
+    order: 4;
+    margin-top: 0.2rem;
+  }
+
+  .xp-label {
+    font-size: 0.72rem;
+  }
+
+  .badge-btn {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.76rem;
+  }
+
+  /* Main Layout */
+  .main-layout {
+    padding: 0 0.8rem;
+    margin: 1rem auto;
+  }
+
+  .glass-card {
+    padding: 1.2rem;
+    border-radius: var(--radius-md);
+  }
+
+  .hero-card {
+    padding: 1.5rem 1.2rem;
+  }
+
+  .hero-title {
+    font-size: 1.45rem;
+    line-height: 1.3;
+  }
+
+  .hero-desc {
+    font-size: 0.88rem;
+  }
+
+  .card-title {
+    font-size: 1.15rem;
+  }
+
+  /* Curriculum Knowledge Hub */
+  .track-filter-bar {
+    gap: 0.35rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 0.3rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .track-chip {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .module-content-area {
+    padding: 1.4rem 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  .module-title-text {
+    font-size: 1.4rem;
+    line-height: 1.3;
+  }
+
+  .module-subtitle-text {
+    font-size: 0.92rem;
+  }
+
+  .module-section h3 {
+    font-size: 1.12rem;
+  }
+
+  .markdown-body {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .markdown-body ul {
+    padding-left: 1.2rem;
+  }
+
+  .markdown-body pre {
+    padding: 0.9rem;
+    font-size: 0.82rem;
+  }
+
+  .math-block {
+    padding: 0.8rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .chapter-nav-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.8rem;
+  }
+
+  .chapter-nav-bar .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Interactive Simulators */
+  .sim-layout-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .input-field, .select-field, .textarea-field {
+    font-size: 0.9rem;
+    padding: 0.6rem 0.8rem;
+  }
+
+  .btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  /* Flashcards */
+  .flashcard-inner {
+    min-height: 210px;
+    padding: 1.4rem 1rem;
+  }
+
+  .flashcard-text {
+    font-size: 1rem;
+  }
+
+  /* Formulas */
+  .formula-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .formula-display {
+    font-size: 0.92rem;
+    padding: 0.8rem;
+  }
+
+  /* Toasts */
+  #app-toast {
+    left: 1rem !important;
+    right: 1rem !important;
+    bottom: 1rem !important;
+    text-align: center;
+    font-size: 0.82rem;
+    padding: 0.65rem 1rem;
+  }
+}
+
+/* Small Smart Phones (<= 480px) */
+@media (max-width: 480px) {
+  .logo-text h1 {
+    font-size: 1.05rem;
+  }
+
+  .stat-pill {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.72rem;
+  }
+
+  .module-title-text {
+    font-size: 1.25rem;
+  }
+
+  .self-test-box, .takeaway-box {
+    padding: 1rem;
+  }
+
+  .badge-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
