@@ -464,8 +464,519 @@ function openTopicFromHome(topicId) {
 }
 
 function startDailyLoopEntry() {
-  showToast("⚡ Launching today's practice with your active topic...");
-  resumeLastStudiedTopic();
+  startLearningFeed();
+}
+
+// -------------------------------------------------------------
+// MOBILE LEARNING FEED ENGINE (PHASE 4)
+// -------------------------------------------------------------
+
+let currentFeedItems = [];
+let answeredFeedCards = {};
+
+function generateLearningFeed() {
+  const activeTopicId = userState.lastStudiedTopic || currentTopicId || "topic1";
+  const mod = APP_DATA.modules.find(m => m.id === activeTopicId) || APP_DATA.modules[0];
+  const activeTrack = mod.track || "track1";
+
+  const feed = [];
+
+  // 1. Concept Card (Source: Active Topic)
+  const firstSec = (mod.sections && mod.sections.length > 0) ? mod.sections[0] : null;
+  const takeaway = (mod.keyTakeaways && mod.keyTakeaways.length > 0) ? mod.keyTakeaways[0] : mod.summary;
+
+  feed.push({
+    id: `feed_concept_${mod.id}`,
+    type: "concept",
+    topicId: mod.id,
+    track: mod.track,
+    title: `Topic ${mod.number}: ${mod.title}`,
+    subtitle: mod.subtitle,
+    sectionHeading: firstSec ? firstSec.heading : "Core Concept",
+    content: firstSec ? firstSec.content : mod.summary,
+    takeaway: takeaway
+  });
+
+  // 2. Spaced Flashcard Card (Source: APP_DATA.flashcards matching track or overall)
+  const trackCards = APP_DATA.flashcards.filter(f => f.track === activeTrack);
+  const flashcard = trackCards.length > 0 ? trackCards[0] : APP_DATA.flashcards[0];
+  if (flashcard) {
+    feed.push({
+      id: `feed_fc_${flashcard.id}`,
+      type: "flashcard",
+      topicId: mod.id,
+      track: flashcard.track,
+      title: "Active Recall Flashcard",
+      front: flashcard.front,
+      back: flashcard.back,
+      math: flashcard.math
+    });
+  }
+
+  // 3. MCQ Card (Source: APP_DATA.quizzes matching track or fallback)
+  const trackQuizzes = APP_DATA.quizzes.filter(q => q.track === activeTrack);
+  const quiz = trackQuizzes.length > 0 ? trackQuizzes[0] : APP_DATA.quizzes[0];
+  if (quiz) {
+    feed.push({
+      id: `feed_mcq_${quiz.id}`,
+      type: "mcq",
+      topicId: mod.id,
+      track: quiz.track,
+      title: "Quick Knowledge Check",
+      question: quiz.question,
+      options: quiz.options,
+      correctIndex: quiz.correctIndex,
+      explanation: quiz.explanation,
+      xp: quiz.xp || 50
+    });
+  }
+
+  // 4. Scenario Challenge Card (Source: APP_DATA.scenarioChallenges)
+  const scenario = APP_DATA.scenarioChallenges[0];
+  if (scenario) {
+    feed.push({
+      id: `feed_scenario_${scenario.id}`,
+      type: "scenario",
+      topicId: mod.id,
+      title: scenario.title,
+      context: scenario.context,
+      symptoms: scenario.symptoms,
+      question: scenario.question,
+      options: scenario.options,
+      correctIndex: scenario.correctIndex,
+      explanation: scenario.explanation,
+      xp: scenario.xp || 100
+    });
+  }
+
+  // 5. Explain / Interview Articulation Card (Source: APP_DATA.articulationQuestions)
+  const artQ = APP_DATA.articulationQuestions[0];
+  if (artQ) {
+    feed.push({
+      id: `feed_art_${artQ.id}`,
+      type: "explain",
+      topicId: mod.id,
+      title: artQ.title,
+      category: artQ.category,
+      prompt: artQ.prompt,
+      keywords: artQ.keywords,
+      goldAnswer: artQ.goldAnswer,
+      xp: artQ.xp || 75
+    });
+  }
+
+  // 6. Session Completion Milestone Card
+  feed.push({
+    id: "feed_completion",
+    type: "completion",
+    title: "Session Complete! 🎉",
+    totalSteps: feed.length
+  });
+
+  return feed;
+}
+
+function startLearningFeed() {
+  switchTab("tab-feed");
+  currentFeedItems = generateLearningFeed();
+  answeredFeedCards = {};
+  renderLearningFeed();
+  setupFeedScrollObserver();
+}
+
+function renderLearningFeed() {
+  const container = document.getElementById("learning-feed-container");
+  if (!container) return;
+
+  const total = currentFeedItems.length;
+  updateFeedHeaderProgress(1, total);
+
+  container.innerHTML = currentFeedItems.map((item, idx) => {
+    switch (item.type) {
+      case "concept":
+        return renderConceptFeedCard(item, idx, total);
+      case "flashcard":
+        return renderFlashcardFeedCard(item, idx, total);
+      case "mcq":
+        return renderMCQFeedCard(item, idx, total);
+      case "scenario":
+        return renderScenarioFeedCard(item, idx, total);
+      case "explain":
+        return renderExplainFeedCard(item, idx, total);
+      case "completion":
+        return renderCompletionFeedCard(item, idx, total);
+      default:
+        return "";
+    }
+  }).join('');
+}
+
+function updateFeedHeaderProgress(current, total) {
+  const textEl = document.getElementById("feed-progress-text");
+  if (textEl) {
+    textEl.textContent = `Step ${current} of ${total}`;
+  }
+}
+
+function renderConceptFeedCard(item, idx, total) {
+  return `
+    <div class="feed-card" id="feed-card-${idx}">
+      <div>
+        <div class="feed-card-header">
+          <span class="feed-card-type-tag tag-concept"><i class="fas fa-lightbulb"></i> Concept Snapshot</span>
+          <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">${idx + 1} / ${total}</span>
+        </div>
+        <div class="feed-card-body">
+          <h3 class="feed-card-title">${item.title}</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.6rem;">${item.subtitle || ''}</p>
+          <div class="feed-card-text">${formatMarkdownContent(item.content)}</div>
+          ${item.takeaway ? `<div class="feed-takeaway-box"><strong>💡 Key Takeaway:</strong> ${item.takeaway}</div>` : ''}
+        </div>
+      </div>
+      <div class="feed-card-footer">
+        <button class="btn-feed-next" onclick="scrollFeedTo(${idx + 1})">
+          Got it, Continue <i class="fas fa-arrow-down"></i>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderFlashcardFeedCard(item, idx, total) {
+  return `
+    <div class="feed-card" id="feed-card-${idx}">
+      <div>
+        <div class="feed-card-header">
+          <span class="feed-card-type-tag tag-flashcard"><i class="fas fa-clone"></i> Spaced Recall</span>
+          <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">${idx + 1} / ${total}</span>
+        </div>
+        <div class="feed-card-body">
+          <div class="feed-flashcard-box" id="feed-fc-box-${idx}" onclick="handleFeedFlashcardFlip(${idx})">
+            <div id="feed-fc-front-${idx}">
+              <div style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 700; text-transform: uppercase; margin-bottom: 0.6rem;">Question / Concept (Tap to Reveal)</div>
+              <div style="font-size: 1.1rem; font-weight: 600; color: #ffffff; line-height: 1.4;">${item.front}</div>
+            </div>
+            <div id="feed-fc-back-${idx}" style="display: none;">
+              <div style="font-size: 0.75rem; color: var(--accent-success); font-weight: 700; text-transform: uppercase; margin-bottom: 0.6rem;">Answer & Formula</div>
+              <div style="font-size: 1rem; color: #ffffff; line-height: 1.4;">${item.back}</div>
+              ${item.math ? `<div class="math-block" style="margin-top: 0.6rem; font-size: 0.95rem;">${formatLaTeXMath(item.math)}</div>` : ''}
+            </div>
+          </div>
+
+          <div id="feed-srs-panel-${idx}" style="display: none; margin-top: 0.8rem;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-bottom: 0.4rem; font-weight: 600;">How easily did you recall this?</div>
+            <div class="feed-srs-grid">
+              <button class="btn-srs btn-srs-again" onclick="handleFeedSRSGrade(${idx}, 'Again')">😵 Again</button>
+              <button class="btn-srs btn-srs-hard" onclick="handleFeedSRSGrade(${idx}, 'Hard')">😐 Hard</button>
+              <button class="btn-srs btn-srs-good" onclick="handleFeedSRSGrade(${idx}, 'Good')">🙂 Good</button>
+              <button class="btn-srs btn-srs-easy" onclick="handleFeedSRSGrade(${idx}, 'Easy')">🔥 Easy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="feed-card-footer">
+        <button class="btn-feed-next" onclick="scrollFeedTo(${idx + 1})">
+          Next Card <i class="fas fa-arrow-down"></i>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function handleFeedFlashcardFlip(idx) {
+  const box = document.getElementById(`feed-fc-box-${idx}`);
+  const front = document.getElementById(`feed-fc-front-${idx}`);
+  const back = document.getElementById(`feed-fc-back-${idx}`);
+  const srsPanel = document.getElementById(`feed-srs-panel-${idx}`);
+
+  if (box && front && back) {
+    const isFlipped = box.classList.toggle("flipped");
+    if (isFlipped) {
+      front.style.display = "none";
+      back.style.display = "block";
+      if (srsPanel) srsPanel.style.display = "block";
+    } else {
+      front.style.display = "block";
+      back.style.display = "none";
+    }
+  }
+}
+
+function handleFeedSRSGrade(cardIdx, grade) {
+  showToast(`Recorded: ${grade} recall (+15 XP)`);
+  addXP(15, `Flashcard Recall: ${grade}`);
+  scrollFeedTo(cardIdx + 1);
+}
+
+function renderMCQFeedCard(item, idx, total) {
+  const letters = ["A", "B", "C", "D", "E"];
+  return `
+    <div class="feed-card" id="feed-card-${idx}">
+      <div>
+        <div class="feed-card-header">
+          <span class="feed-card-type-tag tag-mcq"><i class="fas fa-bolt"></i> Knowledge Test</span>
+          <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">${idx + 1} / ${total}</span>
+        </div>
+        <div class="feed-card-body">
+          <h3 class="feed-card-title">${item.question}</h3>
+          <div class="feed-options-stack" id="feed-mcq-options-${idx}">
+            ${item.options.map((opt, optIdx) => `
+              <button class="feed-option-btn" id="feed-mcq-btn-${idx}-${optIdx}" onclick="handleFeedMCQOption(${idx}, ${optIdx}, ${item.correctIndex}, ${item.xp})">
+                <span class="feed-option-letter">${letters[optIdx]}</span>
+                <span>${opt}</span>
+              </button>
+            `).join('')}
+          </div>
+          <div class="feed-explanation-box" id="feed-mcq-exp-${idx}">
+            <strong style="display: block; margin-bottom: 0.3rem;" id="feed-mcq-feedback-${idx}"></strong>
+            <span>${item.explanation}</span>
+          </div>
+        </div>
+      </div>
+      <div class="feed-card-footer">
+        <button class="btn-feed-next" onclick="scrollFeedTo(${idx + 1})">
+          Next Step <i class="fas fa-arrow-down"></i>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function handleFeedMCQOption(cardIdx, selectedIdx, correctIdx, xp) {
+  if (answeredFeedCards[`mcq_${cardIdx}`]) return;
+  answeredFeedCards[`mcq_${cardIdx}`] = true;
+
+  const optionsContainer = document.getElementById(`feed-mcq-options-${cardIdx}`);
+  const expBox = document.getElementById(`feed-mcq-exp-${cardIdx}`);
+  const feedbackLabel = document.getElementById(`feed-mcq-feedback-${cardIdx}`);
+
+  if (optionsContainer) {
+    const buttons = optionsContainer.querySelectorAll(".feed-option-btn");
+    buttons.forEach((btn, idx) => {
+      btn.disabled = true;
+      if (idx === correctIdx) {
+        btn.classList.add("selected-correct");
+      } else if (idx === selectedIdx) {
+        btn.classList.add("selected-incorrect");
+      }
+    });
+  }
+
+  if (expBox && feedbackLabel) {
+    expBox.style.display = "block";
+    if (selectedIdx === correctIdx) {
+      feedbackLabel.innerHTML = `<span style="color: var(--accent-success);"><i class="fas fa-check-circle"></i> Correct! (+${xp} XP)</span>`;
+      addXP(xp, "Feed MCQ Correct");
+    } else {
+      feedbackLabel.innerHTML = `<span style="color: #ef4444;"><i class="fas fa-times-circle"></i> Not quite. Study the diagnostic rationale:</span>`;
+      addXP(10, "Feed MCQ Attempt");
+    }
+  }
+}
+
+function renderScenarioFeedCard(item, idx, total) {
+  const letters = ["A", "B", "C", "D"];
+  return `
+    <div class="feed-card" id="feed-card-${idx}">
+      <div>
+        <div class="feed-card-header">
+          <span class="feed-card-type-tag tag-scenario"><i class="fas fa-exclamation-triangle"></i> Scenario Challenge</span>
+          <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">${idx + 1} / ${total}</span>
+        </div>
+        <div class="feed-card-body">
+          <h3 class="feed-card-title">${item.title}</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem;">${item.context}</p>
+          
+          <div class="feed-symptom-box">
+            <strong style="color: #fbcfe8; display: block; margin-bottom: 0.3rem;">Observed Symptoms:</strong>
+            ${item.symptoms.map(s => `<div style="margin-bottom: 0.2rem;">• ${s}</div>`).join('')}
+          </div>
+
+          <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin: 0.6rem 0 0.4rem 0;">${item.question}</div>
+
+          <div class="feed-options-stack" id="feed-scenario-options-${idx}">
+            ${item.options.map((opt, optIdx) => `
+              <button class="feed-option-btn" id="feed-sc-btn-${idx}-${optIdx}" onclick="handleFeedScenarioOption(${idx}, ${optIdx}, ${item.correctIndex}, ${item.xp})">
+                <span class="feed-option-letter">${letters[optIdx]}</span>
+                <span>${opt}</span>
+              </button>
+            `).join('')}
+          </div>
+
+          <div class="feed-explanation-box" id="feed-scenario-exp-${idx}">
+            <strong style="display: block; margin-bottom: 0.3rem;" id="feed-scenario-feedback-${idx}"></strong>
+            <span>${item.explanation}</span>
+          </div>
+        </div>
+      </div>
+      <div class="feed-card-footer">
+        <button class="btn-feed-next" onclick="scrollFeedTo(${idx + 1})">
+          Next Step <i class="fas fa-arrow-down"></i>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function handleFeedScenarioOption(cardIdx, selectedIdx, correctIdx, xp) {
+  if (answeredFeedCards[`scenario_${cardIdx}`]) return;
+  answeredFeedCards[`scenario_${cardIdx}`] = true;
+
+  const container = document.getElementById(`feed-scenario-options-${cardIdx}`);
+  const expBox = document.getElementById(`feed-scenario-exp-${cardIdx}`);
+  const feedbackLabel = document.getElementById(`feed-scenario-feedback-${cardIdx}`);
+
+  if (container) {
+    const buttons = container.querySelectorAll(".feed-option-btn");
+    buttons.forEach((btn, idx) => {
+      btn.disabled = true;
+      if (idx === correctIdx) {
+        btn.classList.add("selected-correct");
+      } else if (idx === selectedIdx) {
+        btn.classList.add("selected-incorrect");
+      }
+    });
+  }
+
+  if (expBox && feedbackLabel) {
+    expBox.style.display = "block";
+    if (selectedIdx === correctIdx) {
+      feedbackLabel.innerHTML = `<span style="color: var(--accent-success);"><i class="fas fa-check-circle"></i> Diagnostic Solved! (+${xp} XP)</span>`;
+      addXP(xp, "Scenario Challenge Solved");
+    } else {
+      feedbackLabel.innerHTML = `<span style="color: #ef4444;"><i class="fas fa-times-circle"></i> Diagnostic Fix:</span>`;
+      addXP(20, "Scenario Challenge Attempt");
+    }
+  }
+}
+
+function renderExplainFeedCard(item, idx, total) {
+  return `
+    <div class="feed-card" id="feed-card-${idx}">
+      <div>
+        <div class="feed-card-header">
+          <span class="feed-card-type-tag tag-explain"><i class="fas fa-microphone"></i> Articulation Studio</span>
+          <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">${idx + 1} / ${total}</span>
+        </div>
+        <div class="feed-card-body">
+          <h3 class="feed-card-title">${item.title}</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem;">${item.prompt}</p>
+
+          <textarea id="feed-art-input-${idx}" class="feed-textarea" placeholder="Type your 30-second technical answer here... (mention key terms like ChromaDB, embeddings, cosine similarity)"></textarea>
+
+          <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 0.6rem;" onclick="evaluateFeedArticulation(${idx})">
+            <i class="fas fa-check-double"></i> Evaluate Answer Coverage
+          </button>
+
+          <div class="feed-art-feedback" id="feed-art-feedback-${idx}">
+            <div id="feed-art-score-${idx}" style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.4rem;"></div>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.4rem;">Keywords Detected:</div>
+            <div id="feed-art-keywords-${idx}" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.8rem;"></div>
+            <div style="background: rgba(0,0,0,0.3); padding: 0.8rem; border-radius: var(--radius-sm); font-size: 0.85rem; line-height: 1.45; border-left: 3px solid var(--accent-success);">
+              <strong style="color: var(--accent-success); display: block; margin-bottom: 0.2rem;">Model Gold Answer:</strong>
+              <div style="white-space: pre-line; color: #e2e8f0;">${item.goldAnswer}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="feed-card-footer">
+        <button class="btn-feed-next" onclick="scrollFeedTo(${idx + 1})">
+          Finish Session <i class="fas fa-arrow-down"></i>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function evaluateFeedArticulation(cardIdx) {
+  const item = currentFeedItems[cardIdx];
+  if (!item || item.type !== "explain") return;
+
+  const input = document.getElementById(`feed-art-input-${cardIdx}`);
+  const feedbackBox = document.getElementById(`feed-art-feedback-${cardIdx}`);
+  const scoreEl = document.getElementById(`feed-art-score-${cardIdx}`);
+  const kwContainer = document.getElementById(`feed-art-keywords-${cardIdx}`);
+
+  if (!input || !feedbackBox || !scoreEl || !kwContainer) return;
+
+  const text = input.value.trim().toLowerCase();
+  if (!text) {
+    showToast("Please enter an answer to evaluate.");
+    return;
+  }
+
+  let matched = 0;
+  const kwHtml = item.keywords.map(kw => {
+    const isPresent = text.includes(kw.toLowerCase());
+    if (isPresent) matched++;
+    return `<span style="padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.72rem; font-weight: 600; background: ${isPresent ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.05)'}; color: ${isPresent ? 'var(--accent-success)' : 'var(--text-muted)'}; border: 1px solid ${isPresent ? 'var(--accent-success)' : 'var(--border-color)'};">${isPresent ? '✓ ' : ''}${kw}</span>`;
+  }).join('');
+
+  const scorePct = Math.round((matched / item.keywords.length) * 100);
+  scoreEl.innerHTML = `<span style="color: ${scorePct >= 60 ? 'var(--accent-success)' : 'var(--accent-warning)'};">Match Score: ${scorePct}% (${matched} of ${item.keywords.length} core concepts)</span>`;
+  kwContainer.innerHTML = kwHtml;
+  feedbackBox.style.display = "block";
+
+  if (!answeredFeedCards[`art_${cardIdx}`]) {
+    answeredFeedCards[`art_${cardIdx}`] = true;
+    const earnedXP = Math.max(25, Math.round((matched / item.keywords.length) * (item.xp || 75)));
+    addXP(earnedXP, "Articulation Evaluation");
+    showToast(`Articulation Evaluated: +${earnedXP} XP!`);
+  }
+}
+
+function renderCompletionFeedCard(item, idx, total) {
+  return `
+    <div class="feed-card" id="feed-card-${idx}">
+      <div class="feed-completion-box">
+        <div class="feed-completion-icon">🎉</div>
+        <h2 style="font-family: var(--font-heading); font-size: 1.6rem; color: #ffffff; margin-bottom: 0.4rem;">Learning Session Complete!</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.2rem;">
+          You completed all ${item.totalSteps} learning steps today.<br>Concepts reviewed, active recall practiced, and practical reasoning sharpened.
+        </p>
+        <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+          <button class="btn btn-primary" onclick="switchTab('tab-dashboard')">
+            <i class="fas fa-home"></i> Return to Home
+          </button>
+          <button class="btn btn-secondary" onclick="startLearningFeed()">
+            <i class="fas fa-redo"></i> Practice Another Set
+          </button>
+        </div>
+      </div>
+      <div class="feed-card-footer" style="justify-content: center;">
+        <span style="font-size: 0.82rem; color: var(--accent-success); font-weight: 700;">Daily Loop Milestone Achieved ⚡</span>
+      </div>
+    </div>
+  `;
+}
+
+function scrollFeedTo(index) {
+  const targetCard = document.getElementById(`feed-card-${index}`);
+  if (targetCard) {
+    targetCard.scrollIntoView({ behavior: "smooth", block: "start" });
+    updateFeedHeaderProgress(index + 1, currentFeedItems.length);
+  }
+}
+
+function setupFeedScrollObserver() {
+  const container = document.getElementById("learning-feed-container");
+  if (!container || !('IntersectionObserver' in window)) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        const match = id.match(/feed-card-(\d+)/);
+        if (match) {
+          const idx = parseInt(match[1], 10);
+          updateFeedHeaderProgress(idx + 1, currentFeedItems.length);
+        }
+      }
+    });
+  }, { threshold: 0.6 });
+
+  const cards = container.querySelectorAll(".feed-card");
+  cards.forEach(c => observer.observe(c));
 }
 
 // LaTeX Math Formatter

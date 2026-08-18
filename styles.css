@@ -1465,6 +1465,387 @@ header.desktop-header {
 }
 
 /* ==========================================================================
+   MOBILE LEARNING FEED ARCHITECTURE (PHASE 4)
+   ========================================================================== */
+
+#tab-feed {
+  padding: 0;
+}
+
+.feed-header {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.8rem;
+  background: rgba(9, 13, 22, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 0.9rem;
+}
+
+.feed-back-btn, .feed-refresh-btn {
+  width: 40px;
+  height: 40px;
+  min-height: var(--touch-target);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.feed-back-btn:active, .feed-refresh-btn:active {
+  background: var(--accent-primary);
+  color: #ffffff;
+}
+
+.feed-header-info {
+  text-align: center;
+}
+
+.feed-header-title {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.feed-header-subtitle {
+  font-size: 0.75rem;
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+.learning-feed-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 0.2rem 2.5rem 0.2rem;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.feed-card {
+  scroll-snap-align: start;
+  scroll-margin-top: 60px;
+  min-height: min(520px, calc(100vh - 170px));
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.35rem 1.1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+}
+
+.feed-card:hover {
+  border-color: var(--border-highlight);
+}
+
+.feed-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+}
+
+.feed-card-type-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.65rem;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.tag-concept {
+  background: rgba(99, 102, 241, 0.18);
+  color: #c7d2fe;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+}
+
+.tag-mcq {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fde68a;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.tag-flashcard {
+  background: rgba(6, 182, 212, 0.18);
+  color: #a5f3fc;
+  border: 1px solid rgba(6, 182, 212, 0.4);
+}
+
+.tag-scenario {
+  background: rgba(236, 72, 153, 0.18);
+  color: #fbcfe8;
+  border: 1px solid rgba(236, 72, 153, 0.4);
+}
+
+.tag-explain {
+  background: rgba(16, 185, 129, 0.18);
+  color: #a7f3d0;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.tag-complete {
+  background: rgba(251, 191, 36, 0.25);
+  color: #fbbf24;
+  border: 1px solid #fbbf24;
+}
+
+.feed-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 0.6rem 0;
+}
+
+.feed-card-title {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.35;
+  margin-bottom: 0.5rem;
+}
+
+.feed-card-text {
+  font-size: 0.95rem;
+  color: #e2e8f0;
+  line-height: 1.6;
+}
+
+.feed-takeaway-box {
+  background: rgba(99, 102, 241, 0.1);
+  border-left: 3px solid var(--accent-primary);
+  padding: 0.8rem 1rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-top: 0.9rem;
+  font-size: 0.88rem;
+  color: #c7d2fe;
+  line-height: 1.5;
+}
+
+.feed-options-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+
+.feed-option-btn {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  text-align: left;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  width: 100%;
+}
+
+.feed-option-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.feed-option-btn:active {
+  transform: scale(0.99);
+}
+
+.feed-option-btn.selected-correct {
+  background: rgba(16, 185, 129, 0.22) !important;
+  border-color: var(--accent-success) !important;
+  color: #ffffff !important;
+}
+
+.feed-option-btn.selected-incorrect {
+  background: rgba(239, 68, 68, 0.22) !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+.feed-option-letter {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.feed-explanation-box {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-highlight);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 0.95rem;
+  margin-top: 0.8rem;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: #e2e8f0;
+  display: none;
+}
+
+.feed-card-footer {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.btn-feed-next {
+  width: 100%;
+  min-height: 46px;
+  background: var(--accent-primary);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-feed-next:active {
+  transform: scale(0.98);
+}
+
+/* Feed Flashcard Specific Styles */
+.feed-flashcard-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.4rem 1.1rem;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.feed-flashcard-box.flipped {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: var(--accent-primary);
+}
+
+.feed-srs-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.45rem;
+  margin-top: 1rem;
+}
+
+.btn-srs {
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0.4rem 0.2rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: transform 0.1s ease;
+}
+
+.btn-srs:active {
+  transform: scale(0.96);
+}
+
+.btn-srs-again { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #fca5a5; }
+.btn-srs-hard { background: rgba(245, 158, 11, 0.2); border-color: #f59e0b; color: #fde68a; }
+.btn-srs-good { background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; color: #93c5fd; }
+.btn-srs-easy { background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #6ee7b7; }
+
+/* Feed Scenario Specific Styles */
+.feed-symptom-box {
+  background: rgba(236, 72, 153, 0.08);
+  border: 1px solid rgba(236, 72, 153, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem;
+  margin: 0.6rem 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* Feed Articulation Explain Specific Styles */
+.feed-textarea {
+  width: 100%;
+  min-height: 100px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  padding: 0.8rem;
+  font-size: 0.92rem;
+  font-family: inherit;
+  resize: vertical;
+  margin-top: 0.8rem;
+}
+
+.feed-textarea:focus {
+  outline: 2px solid var(--accent-primary);
+}
+
+.feed-art-feedback {
+  margin-top: 0.8rem;
+  display: none;
+}
+
+/* Session Completion Card */
+.feed-completion-box {
+  text-align: center;
+  padding: 1.5rem 0.5rem;
+}
+
+.feed-completion-icon {
+  font-size: 3rem;
+  margin-bottom: 0.8rem;
+}
+
+/* ==========================================================================
    COMPREHENSIVE RESPONSIVE DESIGN SYSTEM (MOBILE, TABLET & DESKTOP)
    ========================================================================== */
 
