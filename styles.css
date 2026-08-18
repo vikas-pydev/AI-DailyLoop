@@ -32,6 +32,13 @@
   --radius-md: 14px;
   --radius-lg: 20px;
   --shadow-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+
+  /* Mobile & Responsive Foundation Tokens */
+  --touch-target: 44px;
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
 }
 
 * {
@@ -51,7 +58,10 @@ body {
   font-family: var(--font-body);
   line-height: 1.6;
   min-height: 100vh;
+  min-height: -webkit-fill-available;
   overflow-x: hidden;
+  padding-left: var(--safe-area-left);
+  padding-right: var(--safe-area-right);
 }
 
 /* Scrollbar */
@@ -1581,6 +1591,7 @@ header {
     font-size: 0.82rem;
     padding: 0.5rem 0.85rem;
     border-radius: var(--radius-sm);
+    min-height: var(--touch-target);
   }
 
   .nav-item i {
@@ -1716,6 +1727,9 @@ header {
     padding: 1rem;
     font-size: 0.85rem;
     border-radius: var(--radius-sm);
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .math-block {
@@ -1723,6 +1737,10 @@ header {
     font-size: 1rem;
     margin: 1.2rem 0;
     line-height: 1.6;
+    max-width: 100%;
+    overflow-x: auto;
+    word-break: break-word;
+    -webkit-overflow-scrolling: touch;
   }
 
   .self-test-box, .takeaway-box {
@@ -1745,6 +1763,7 @@ header {
     justify-content: center;
     padding: 0.75rem;
     font-size: 0.9rem;
+    min-height: var(--touch-target);
   }
 
   /* Formula Matrix Grid -> 1 Column */
@@ -1768,6 +1787,7 @@ header {
     padding: 0.85rem;
     margin: 0.8rem 0;
     word-break: break-word;
+    overflow-x: auto;
   }
 
   .formula-desc {
@@ -1781,14 +1801,28 @@ header {
     gap: 1rem;
   }
 
+  .vis-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.8rem;
+  }
+
+  .vis-stage {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .input-field, .select-field, .textarea-field {
-    font-size: 0.95rem;
+    font-size: 16px; /* Prevents iOS auto-zoom */
     padding: 0.7rem 0.9rem;
+    min-height: var(--touch-target);
   }
 
   .btn {
     padding: 0.7rem 1.1rem;
     font-size: 0.9rem;
+    min-height: var(--touch-target);
   }
 
   /* Flashcards */
@@ -1821,6 +1855,7 @@ header {
     padding: 0.85rem 1rem;
     font-size: 0.95rem;
     line-height: 1.45;
+    min-height: var(--touch-target);
   }
 
   /* Badges */
@@ -1873,6 +1908,40 @@ header {
 
   .badge-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Narrow & Small Phones (320px - 360px) */
+@media (max-width: 360px) {
+  html, body {
+    font-size: 14px;
+  }
+
+  .main-layout {
+    padding: 0 0.4rem;
+  }
+
+  .hero-title {
+    font-size: 1.25rem;
+  }
+
+  .stat-pill {
+    padding: 0.25rem 0.45rem;
+    font-size: 0.7rem;
+  }
+
+  .glass-card {
+    padding: 1rem 0.75rem;
+  }
+}
+
+/* Reduced Motion Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
