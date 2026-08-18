@@ -389,6 +389,14 @@ function setupTabNavigation() {
       closeMobileDrawer();
     }
   });
+
+  // Prevent accidental tab close during active exam
+  window.addEventListener("beforeunload", (e) => {
+    if (activeExamSession && activeExamSession.inProgress && !activeExamSession.submitted) {
+      e.preventDefault();
+      e.returnValue = "Your exam is still in progress.";
+    }
+  });
 }
 
 // -------------------------------------------------------------
@@ -2640,7 +2648,31 @@ function handleQuizAnswer(quizId, selectedIdx, isScenario = false) {
   });
 }
 
-// Timed Mock Exam Simulator
+// -------------------------------------------------------------
+// TIMED MOCK EXAM ENGINE (PHASE 7)
+// -------------------------------------------------------------
+
+let activeExamSession = {
+  inProgress: false,
+  questions: [],
+  currentIndex: 0,
+  answers: {},       // { [questionIdx]: selectedOptionIdx }
+  flags: {},         // { [questionIdx]: boolean }
+  secondsRemaining: 300,
+  totalDuration: 300,
+  timer: null,
+  submitted: false,
+  startTime: null
+};
+
+function getLocalDateKey() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function startMockExam() {
   const navQuizzes = document.querySelector('[data-tab="tab-quizzes"]');
   if (navQuizzes) navQuizzes.click();
@@ -2650,98 +2682,339 @@ function startMockExam() {
 
   runtime.style.display = "block";
 
-  // Build random 10-question test pool from quizzes + self-test topics
+  // Build random 10-question test pool from quizzes
   const combinedPool = [...APP_DATA.quizzes];
-  examQuestions = combinedPool.sort(() => 0.5 - Math.random()).slice(0, 10);
-  currentExamIdx = 0;
-  examUserAnswers = [];
-  examSecondsRemaining = 300; // 5 mins
+  const selectedQuestions = combinedPool.sort(() => 0.5 - Math.random()).slice(0, 10);
 
-  if (examTimer) clearInterval(examTimer);
-  examTimer = setInterval(updateExamTimer, 1000);
-  updateExamTimer();
+  if (activeExamSession.timer) {
+    clearInterval(activeExamSession.timer);
+  }
 
+  activeExamSession = {
+    inProgress: true,
+    questions: selectedQuestions,
+    currentIndex: 0,
+    answers: {},
+    flags: {},
+    secondsRemaining: 300,
+    totalDuration: 300,
+    timer: null,
+    submitted: false,
+    startTime: Date.now()
+  };
+
+  activeExamSession.timer = setInterval(updateExamTimer, 1000);
+  updateExamTimerDisplay();
   renderExamQuestion();
+
+  runtime.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function updateExamTimer() {
+  if (!activeExamSession.inProgress || activeExamSession.submitted) return;
+
+  activeExamSession.secondsRemaining--;
+  updateExamTimerDisplay();
+
+  if (activeExamSession.secondsRemaining <= 0) {
+    clearInterval(activeExamSession.timer);
+    submitExam(true);
+  }
+}
+
+function updateExamTimerDisplay() {
   const display = document.getElementById("exam-timer-display");
   if (!display) return;
 
-  const mins = Math.floor(examSecondsRemaining / 60);
-  const secs = examSecondsRemaining % 60;
-  display.innerHTML = `<i class="fas fa-clock"></i> Time Remaining: ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  const secsLeft = Math.max(0, activeExamSession.secondsRemaining);
+  const mins = Math.floor(secsLeft / 60);
+  const secs = secsLeft % 60;
+  const formatted = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 
-  if (examSecondsRemaining <= 0) {
-    clearInterval(examTimer);
-    finishMockExam();
+  display.innerHTML = `<i class="fas fa-clock"></i> ${formatted}`;
+
+  if (secsLeft <= 60) {
+    display.classList.add("timer-danger");
+  } else {
+    display.classList.remove("timer-danger");
   }
-  examSecondsRemaining--;
 }
 
 function renderExamQuestion() {
   const qBox = document.getElementById("exam-question-box");
   const counter = document.getElementById("exam-progress-counter");
-  if (!qBox || currentExamIdx >= examQuestions.length) return;
+  const progressBar = document.getElementById("exam-progress-bar");
+  const navMatrix = document.getElementById("exam-nav-matrix");
 
-  const q = examQuestions[currentExamIdx];
-  if (counter) counter.textContent = `Question ${currentExamIdx + 1} of ${examQuestions.length}`;
+  const total = activeExamSession.questions.length;
+  const currentIdx = activeExamSession.currentIndex;
+  const q = activeExamSession.questions[currentIdx];
+
+  if (!q || !qBox) return;
+
+  // 1. Update Progress Header
+  if (counter) {
+    counter.textContent = `Question ${currentIdx + 1} of ${total}`;
+  }
+  if (progressBar) {
+    const progressPct = ((currentIdx + 1) / total) * 100;
+    progressBar.style.width = `${progressPct}%`;
+  }
+
+  // 2. Render Question Navigator Matrix
+  if (navMatrix) {
+    navMatrix.innerHTML = activeExamSession.questions.map((_, idx) => {
+      const isCurrent = idx === currentIdx;
+      const isAnswered = activeExamSession.answers[idx] !== undefined;
+      const isFlagged = !!activeExamSession.flags[idx];
+
+      let classes = "exam-nav-pill";
+      if (isCurrent) classes += " active";
+      if (isAnswered) classes += " answered";
+      if (isFlagged) classes += " flagged";
+
+      return `
+        <button class="${classes}" onclick="navigateExamQuestion(${idx})" title="Question ${idx + 1}">
+          ${idx + 1}${isAnswered ? ' ✓' : ''}
+        </button>
+      `;
+    }).join('');
+  }
+
+  // 3. Render Active Question & Options
+  const selectedOptIdx = activeExamSession.answers[currentIdx];
+  const letters = ["A", "B", "C", "D", "E"];
 
   qBox.innerHTML = `
-    <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: var(--radius-md);">
-      <p class="quiz-question-text" style="font-size: 1.05rem; margin-bottom: 1.2rem;">${q.question}</p>
-      <div class="options-list">
-        ${q.options.map((opt, idx) => `
-          <div class="quiz-option" onclick="selectExamAnswer(${idx})">
-            <span style="width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold;">${String.fromCharCode(65 + idx)}</span>
-            <span>${opt}</span>
-          </div>
-        `).join('')}
+    <div class="exam-question-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+        <span class="module-tag" style="background: rgba(99, 102, 241, 0.2); color: var(--accent-primary); font-size: 0.72rem;">Question ${currentIdx + 1}</span>
+        ${activeExamSession.flags[currentIdx] ? '<span style="font-size: 0.75rem; color: var(--accent-warning); font-weight: 700;">🚩 FLAGGED FOR REVIEW</span>' : ''}
+      </div>
+      <div class="exam-question-heading">${q.question}</div>
+      <div class="exam-options-list">
+        ${q.options.map((opt, optIdx) => {
+          const isSelected = selectedOptIdx === optIdx;
+          return `
+            <button class="exam-option-card ${isSelected ? 'selected' : ''}" onclick="selectExamAnswer(${optIdx})">
+              <span class="exam-option-radio">${isSelected ? '●' : letters[optIdx]}</span>
+              <span>${opt}</span>
+            </button>
+          `;
+        }).join('')}
       </div>
     </div>
   `;
-}
 
-function selectExamAnswer(selectedIdx) {
-  examUserAnswers[currentExamIdx] = selectedIdx;
-  currentExamIdx++;
+  // 4. Update Footer Navigation Controls
+  const prevBtn = document.getElementById("exam-btn-prev");
+  const nextBtn = document.getElementById("exam-btn-next");
+  const flagBtn = document.getElementById("exam-btn-flag");
+  const submitBtn = document.getElementById("exam-btn-submit");
 
-  if (currentExamIdx < examQuestions.length) {
-    renderExamQuestion();
-  } else {
-    clearInterval(examTimer);
-    finishMockExam();
+  if (prevBtn) prevBtn.disabled = currentIdx === 0;
+  if (nextBtn) nextBtn.disabled = currentIdx === total - 1;
+  if (flagBtn) {
+    if (activeExamSession.flags[currentIdx]) {
+      flagBtn.innerHTML = `<i class="fas fa-flag" style="color: var(--accent-warning);"></i> Unflag`;
+    } else {
+      flagBtn.innerHTML = `<i class="far fa-flag"></i> Flag`;
+    }
+  }
+
+  const answeredCount = Object.keys(activeExamSession.answers).length;
+  if (submitBtn) {
+    submitBtn.innerHTML = `<i class="fas fa-paper-plane"></i> Submit (${answeredCount}/${total})`;
   }
 }
 
-function finishMockExam() {
-  const qBox = document.getElementById("exam-question-box");
-  if (!qBox) return;
+function selectExamAnswer(optionIdx) {
+  activeExamSession.answers[activeExamSession.currentIndex] = optionIdx;
+  renderExamQuestion();
+}
 
+function prevExamQuestion() {
+  if (activeExamSession.currentIndex > 0) {
+    activeExamSession.currentIndex--;
+    renderExamQuestion();
+  }
+}
+
+function nextExamQuestion() {
+  if (activeExamSession.currentIndex < activeExamSession.questions.length - 1) {
+    activeExamSession.currentIndex++;
+    renderExamQuestion();
+  }
+}
+
+function navigateExamQuestion(index) {
+  if (index >= 0 && index < activeExamSession.questions.length) {
+    activeExamSession.currentIndex = index;
+    renderExamQuestion();
+  }
+}
+
+function toggleCurrentExamFlag() {
+  const idx = activeExamSession.currentIndex;
+  activeExamSession.flags[idx] = !activeExamSession.flags[idx];
+  renderExamQuestion();
+}
+
+function promptExamSubmission() {
+  const modal = document.getElementById("exam-submit-modal");
+  const statsText = document.getElementById("exam-submit-stats-text");
+  if (!modal || !statsText) return;
+
+  const total = activeExamSession.questions.length;
+  const answered = Object.keys(activeExamSession.answers).length;
+  const unanswered = total - answered;
+
+  statsText.innerHTML = `
+    You have answered <strong>${answered}</strong> of <strong>${total}</strong> questions.<br>
+    ${unanswered > 0 ? `<span style="color: #fca5a5;">⚠ ${unanswered} question${unanswered > 1 ? 's are' : ' is'} unanswered.</span>` : '<span style="color: var(--accent-success);">✓ All questions answered!</span>'}
+  `;
+
+  modal.style.display = "flex";
+}
+
+function closeExamSubmitModal() {
+  const modal = document.getElementById("exam-submit-modal");
+  if (modal) modal.style.display = "none";
+}
+
+function confirmExamSubmission() {
+  closeExamSubmitModal();
+  submitExam(false);
+}
+
+function submitExam(isTimeout = false) {
+  if (activeExamSession.submitted) return;
+  activeExamSession.submitted = true;
+  activeExamSession.inProgress = false;
+
+  if (activeExamSession.timer) {
+    clearInterval(activeExamSession.timer);
+  }
+
+  const questions = activeExamSession.questions;
   let correctCount = 0;
-  examQuestions.forEach((q, i) => {
-    if (examUserAnswers[i] === q.correctIndex) correctCount++;
+  const strongTracks = new Set();
+  const weakTracks = new Set();
+
+  questions.forEach((q, i) => {
+    const userAns = activeExamSession.answers[i];
+    const isCorrect = userAns === q.correctIndex;
+
+    if (isCorrect) {
+      correctCount++;
+      if (q.track) strongTracks.add(q.track);
+    } else {
+      if (q.track) weakTracks.add(q.track);
+      // Centralized Mistake Bank logging
+      recordLearningResult({
+        contentId: q.id,
+        contentType: "quiz",
+        topicId: q.track || "track1",
+        correct: false
+      });
+    }
   });
 
-  const percentage = Math.round((correctCount / examQuestions.length) * 100);
+  const percentage = Math.round((correctCount / questions.length) * 100);
   const earnedXP = correctCount * 25;
-  addXP(earnedXP, `for completing Mock Exam (${percentage}%)`);
+
+  // Persist High Score
+  if (!userState.examHighScore || percentage > userState.examHighScore) {
+    userState.examHighScore = percentage;
+  }
+
+  // Idempotent XP Awarding
+  awardXPOnce(`mock_exam_${getLocalDateKey()}_${Date.now()}`, earnedXP, `for completing Mock Exam (${percentage}%)`);
 
   if (percentage >= 80) {
     unlockBadge("exam_ace");
   }
 
+  saveUserState();
+
+  const timeSpentSecs = activeExamSession.totalDuration - Math.max(0, activeExamSession.secondsRemaining);
+  const timeMins = Math.floor(timeSpentSecs / 60);
+  const timeSecs = timeSpentSecs % 60;
+  const timeFormatted = `${timeMins}m ${timeSecs}s`;
+
+  renderExamResults(correctCount, questions.length, percentage, earnedXP, timeFormatted, Array.from(strongTracks), Array.from(weakTracks), isTimeout);
+}
+
+function renderExamResults(correctCount, total, percentage, earnedXP, timeFormatted, strongTracks, weakTracks, isTimeout) {
+  const qBox = document.getElementById("exam-question-box");
+  const navControls = document.getElementById("exam-footer-controls");
+  const navMatrix = document.getElementById("exam-nav-matrix");
+  const stickyHeader = document.getElementById("exam-sticky-header");
+
+  if (navControls) navControls.style.display = "none";
+  if (navMatrix) navMatrix.style.display = "none";
+  if (stickyHeader) stickyHeader.style.display = "none";
+
+  if (!qBox) return;
+
+  const isPassed = percentage >= 70;
+
   qBox.innerHTML = `
-    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(15, 23, 42, 0.9)); border: 1px solid var(--accent-success); padding: 2rem; border-radius: var(--radius-lg); text-align: center;">
-      <div style="font-size: 3rem; margin-bottom: 0.5rem;">${percentage >= 70 ? '🎉' : '📚'}</div>
-      <h3 style="font-family: var(--font-heading); font-size: 1.6rem; color: #ffffff; margin-bottom: 0.4rem;">Exam Simulation Complete!</h3>
-      <p style="font-size: 1.1rem; color: var(--accent-cyan); font-weight: bold; margin-bottom: 1rem;">
-        Score: ${correctCount} / ${examQuestions.length} (${percentage}%)
+    <div class="exam-results-card">
+      <div style="font-size: 2.8rem; margin-bottom: 0.3rem;">${isPassed ? '🎉' : '📚'}</div>
+      <h2 style="font-family: var(--font-heading); font-size: 1.5rem; color: #ffffff; margin-bottom: 0.3rem;">
+        ${isTimeout ? 'Time Expired — Exam Submitted!' : 'Exam Evaluation Complete!'}
+      </h2>
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.2rem;">
+        ${isPassed ? 'Outstanding performance! You demonstrated solid mastery of IITP-AIMLT-2601 concepts.' : 'Good diagnostic run! Focus on the recommended areas below to strengthen your score.'}
       </p>
-      <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 500px; margin: 0 auto 1.5rem auto;">
-        ${percentage >= 80 ? 'Outstanding! You demonstrated mastery of IITP-AIMLT-2601 concepts.' : 'Good effort! Review the formula matrix and flashcards before retrying.'}
-      </p>
-      <button class="btn" onclick="startMockExam()"><i class="fas fa-redo"></i> Retake Practice Exam</button>
+
+      <div class="exam-score-ring ${isPassed ? '' : 'needs-work'}">
+        <span style="font-size: 1.6rem; font-weight: 800; color: #ffffff;">${percentage}%</span>
+        <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">FINAL SCORE</span>
+      </div>
+
+      <div class="exam-breakdown-grid">
+        <div class="exam-breakdown-item">
+          <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">CORRECT</span>
+          <strong style="font-size: 1.05rem; color: var(--accent-success);">${correctCount} / ${total}</strong>
+        </div>
+        <div class="exam-breakdown-item">
+          <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">TIME TAKEN</span>
+          <strong style="font-size: 1.05rem; color: var(--accent-cyan);">${timeFormatted}</strong>
+        </div>
+        <div class="exam-breakdown-item">
+          <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">XP EARNED</span>
+          <strong style="font-size: 1.05rem; color: #fbbf24;">+${earnedXP} XP</strong>
+        </div>
+        <div class="exam-breakdown-item">
+          <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">ALL-TIME BEST</span>
+          <strong style="font-size: 1.05rem; color: #c084fc;">${userState.examHighScore || percentage}%</strong>
+        </div>
+      </div>
+
+      ${weakTracks.length > 0 ? `
+        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-sm); padding: 0.85rem; margin-bottom: 1.2rem; text-align: left;">
+          <strong style="font-size: 0.82rem; color: #fca5a5; display: block; margin-bottom: 0.4rem;">
+            <i class="fas fa-exclamation-triangle"></i> Needs Review & Added to Mistake Bank:
+          </strong>
+          <div style="font-size: 0.8rem; color: #e2e8f0; line-height: 1.5;">
+            ${weakTracks.map(t => {
+              const trackObj = APP_DATA.tracks.find(tr => tr.id === t) || { name: t };
+              return `<div>• ${trackObj.name}</div>`;
+            }).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem;">
+        <button class="btn btn-primary" onclick="startMockExam()">
+          <i class="fas fa-redo"></i> Retake Practice Exam
+        </button>
+        <button class="btn btn-secondary" onclick="switchTab('tab-dashboard')">
+          <i class="fas fa-home"></i> Return to Home
+        </button>
+      </div>
     </div>
   `;
 }

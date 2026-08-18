@@ -804,26 +804,63 @@
       <section id="tab-quizzes" class="tab-panel">
         
         <!-- Exam Simulator Banner -->
-        <div class="glass-card" style="border-color: rgba(99, 102, 241, 0.4); background: linear-gradient(135deg, rgba(17, 24, 39, 0.9), rgba(99, 102, 241, 0.15));">
+        <div class="glass-card exam-hub-card" style="border-color: rgba(99, 102, 241, 0.4); background: linear-gradient(135deg, rgba(17, 24, 39, 0.9), rgba(99, 102, 241, 0.15));">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div>
               <span class="module-tag" style="background: rgba(99, 102, 241, 0.3); color: #ffffff;"><i class="fas fa-stopwatch"></i> Exam Practice</span>
               <h2 class="card-title" style="margin-top: 0.4rem;">IITP-AIMLT-2601 Timed Mock Exam Simulator</h2>
               <p class="card-subtitle">Take a timed 10-question evaluation drawn randomly across all 46 topics. Instant scoring and detailed solution report.</p>
             </div>
-            <button class="btn btn-success" onclick="startMockExam()"><i class="fas fa-play"></i> Start Timed Exam (10 Qs)</button>
+            <button class="btn btn-success" id="btn-start-exam-main" onclick="startMockExam()"><i class="fas fa-play"></i> Start Timed Exam (10 Qs)</button>
           </div>
 
           <!-- Exam Runtime Container -->
-          <div id="mock-exam-runtime" style="display: none; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <span id="exam-timer-display" style="font-family: var(--font-code); font-size: 1.1rem; color: var(--accent-warning); font-weight: bold;"><i class="fas fa-clock"></i> Time Remaining: 05:00</span>
-              <span id="exam-progress-counter" style="font-size: 0.9rem; color: var(--text-muted);">Question 1 of 10</span>
+          <div id="mock-exam-runtime" class="mock-exam-runtime" style="display: none; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.2rem;">
+            
+            <!-- Sticky Exam Progress Header -->
+            <div class="exam-sticky-header" id="exam-sticky-header">
+              <div class="exam-header-top">
+                <span id="exam-progress-counter" class="exam-header-step">Question 1 of 10</span>
+                <span id="exam-timer-display" class="exam-header-timer"><i class="fas fa-clock"></i> 05:00</span>
+              </div>
+              <div class="exam-progress-track">
+                <div class="exam-progress-bar" id="exam-progress-bar" style="width: 10%;"></div>
+              </div>
             </div>
-            <div id="exam-question-box">
-              <!-- Rendered by app.js -->
+
+            <!-- Compact Question Navigator Matrix -->
+            <div class="exam-nav-matrix" id="exam-nav-matrix">
+              <!-- Rendered dynamically by app.js: 1..10 pills -->
+            </div>
+
+            <!-- Active Question & Option Area -->
+            <div id="exam-question-box" class="exam-question-box">
+              <!-- Rendered dynamically by app.js -->
+            </div>
+
+            <!-- Exam Footer Navigation Controls -->
+            <div class="exam-footer-controls" id="exam-footer-controls">
+              <button class="btn btn-secondary exam-btn-ctrl" id="exam-btn-prev" onclick="prevExamQuestion()"><i class="fas fa-arrow-left"></i> Prev</button>
+              <button class="btn btn-secondary exam-btn-ctrl" id="exam-btn-flag" onclick="toggleCurrentExamFlag()"><i class="fas fa-flag"></i> Flag</button>
+              <button class="btn btn-secondary exam-btn-ctrl" id="exam-btn-next" onclick="nextExamQuestion()">Next <i class="fas fa-arrow-right"></i></button>
+              <button class="btn btn-success exam-btn-ctrl" id="exam-btn-submit" onclick="promptExamSubmission()"><i class="fas fa-paper-plane"></i> Submit</button>
             </div>
           </div>
+
+          <!-- Submit Confirmation Modal -->
+          <div id="exam-submit-modal" class="exam-modal-backdrop" style="display: none;">
+            <div class="exam-modal-content">
+              <h3 style="font-family: var(--font-heading); font-size: 1.35rem; color: #ffffff; margin-bottom: 0.5rem;"><i class="fas fa-question-circle" style="color: var(--accent-primary);"></i> Submit Exam?</h3>
+              <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;" id="exam-submit-stats-text">
+                You have answered 8 of 10 questions.
+              </p>
+              <div style="display: flex; gap: 0.8rem; justify-content: flex-end; flex-wrap: wrap;">
+                <button class="btn btn-secondary" onclick="closeExamSubmitModal()">Continue Exam</button>
+                <button class="btn btn-success" onclick="confirmExamSubmission()">Confirm & Submit</button>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <!-- Topic Quizzes List -->
