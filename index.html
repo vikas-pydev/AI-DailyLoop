@@ -497,6 +497,12 @@
           <p class="card-subtitle">Test how document chunking, all-MiniLM embeddings, and cosine similarity retrieve context for LLMs.</p>
 
           <div class="vis-container">
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem;">Tap a preset query or type custom text:</div>
+            <div class="sim-preset-chips" style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.8rem;">
+              <button class="fc-chip" onclick="setRAGPreset('How many annual leave days can I carry forward?')">🏖️ Leave Rollover Policy</button>
+              <button class="fc-chip" onclick="setRAGPreset('What is the notice period for resignation?')">📄 Notice Period Policy</button>
+              <button class="fc-chip" onclick="setRAGPreset('What health insurance coverage is provided?')">🏥 Health Insurance Policy</button>
+            </div>
             <div class="vis-controls">
               <div class="control-group" style="flex: 1;">
                 <label for="rag-query-input">User Input Query:</label>
@@ -517,9 +523,9 @@
           <p class="card-subtitle">Watch an AI Agent reason, invoke tools, observe API results, and execute multi-turn loops.</p>
 
           <div class="vis-container">
-            <div style="margin-bottom: 1rem; display: flex; gap: 1rem; align-items: center;">
-              <button class="btn btn-secondary" id="step-agent-btn"><i class="fas fa-step-forward"></i> Execute Next Agent Step</button>
-              <button class="btn-text" id="reset-agent-btn"><i class="fas fa-redo"></i> Reset Loop</button>
+            <div style="margin-bottom: 1rem; display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
+              <button class="btn btn-secondary" id="step-agent-btn" style="min-height: 44px;"><i class="fas fa-step-forward"></i> Execute Next Agent Step</button>
+              <button class="btn-text" id="reset-agent-btn" style="min-height: 44px; padding: 0.5rem 1rem;"><i class="fas fa-redo"></i> Reset Loop</button>
             </div>
             <div class="vis-stage" id="agent-sim-stage">
               <p style="color: var(--text-muted); font-size: 0.9rem;">Click "Execute Next Agent Step" to step through the ReAct (Reason + Act) loop.</p>
@@ -533,12 +539,12 @@
           <p class="card-subtitle">Compare how fitting transformers before CV vs inside scikit-learn Pipelines impacts validation vs production F1 score.</p>
 
           <div class="vis-container">
-            <div class="vis-controls">
-              <button class="btn btn-secondary" id="toggle-leaky-btn" style="border-color: #ef4444; color: #fca5a5;">
-                <i class="fas fa-bug"></i> Run Leaky Pipeline (Full Scaling Pre-Split)
+            <div class="vis-controls" style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+              <button class="btn btn-secondary" id="toggle-leaky-btn" style="min-height: 44px; border-color: #ef4444; color: #fca5a5; flex: 1;">
+                <i class="fas fa-bug"></i> Leaky Pipeline (Pre-Split Scaling)
               </button>
-              <button class="btn btn-success" id="toggle-clean-btn">
-                <i class="fas fa-check-circle"></i> Run Leak-Free Sklearn Pipeline
+              <button class="btn btn-success" id="toggle-clean-btn" style="min-height: 44px; flex: 1;">
+                <i class="fas fa-check-circle"></i> Leak-Free Sklearn Pipeline
               </button>
             </div>
             <div class="vis-stage" id="leakage-output-stage">
@@ -572,7 +578,7 @@
               </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.8rem; margin-bottom: 1rem;">
               <div class="metric-badge">
                 <span class="metric-lbl">Precision (Exactness)</span>
                 <span class="metric-val" id="metric-precision">0.800</span>
@@ -600,10 +606,10 @@
               </div>
             </div>
 
-            <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
-              <button class="btn btn-secondary btn-sm" onclick="setConfusionPreset('balanced')">Preset: Balanced</button>
-              <button class="btn btn-secondary btn-sm" onclick="setConfusionPreset('imbalanced')">Preset: 99% Imbalanced (Accuracy Paradox)</button>
-              <button class="btn btn-secondary btn-sm" onclick="setConfusionPreset('perfect')">Preset: Perfect (F1 = 1.0)</button>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="fc-chip" onclick="setConfusionPreset('balanced')">Preset: Balanced</button>
+              <button class="fc-chip" onclick="setConfusionPreset('imbalanced')">Preset: 99% Imbalanced (Accuracy Paradox)</button>
+              <button class="fc-chip" onclick="setConfusionPreset('perfect')">Preset: Perfect (F1 = 1.0)</button>
             </div>
           </div>
         </div>
@@ -622,7 +628,7 @@
               <input type="range" id="sigmoid-threshold-slider" min="0.05" max="0.95" step="0.05" value="0.50" class="range-slider" oninput="updateSigmoidSimulator()">
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;" id="sigmoid-output-grid">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;" id="sigmoid-output-grid">
               <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-md); border-left: 3px solid var(--accent-cyan);">
                 <h4 style="font-size: 0.9rem; color: #ffffff; margin-bottom: 0.4rem;">Threshold Policy & Use Case</h4>
                 <p id="threshold-policy-text" style="font-size: 0.85rem; color: var(--text-muted);">Default standard cutoff (0.50). Equal priority to false positives and false negatives.</p>
@@ -667,10 +673,10 @@
 
           <div class="vis-container">
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
-              <button class="btn btn-secondary active" id="join-btn-inner" onclick="showSQLJoin('inner')">INNER JOIN</button>
-              <button class="btn btn-secondary" id="join-btn-left" onclick="showSQLJoin('left')">LEFT JOIN</button>
-              <button class="btn btn-secondary" id="join-btn-right" onclick="showSQLJoin('right')">RIGHT JOIN</button>
-              <button class="btn btn-secondary" id="join-btn-outer" onclick="showSQLJoin('outer')">FULL OUTER JOIN</button>
+              <button class="fc-chip active" id="join-btn-inner" onclick="showSQLJoin('inner')">INNER JOIN</button>
+              <button class="fc-chip" id="join-btn-left" onclick="showSQLJoin('left')">LEFT JOIN</button>
+              <button class="fc-chip" id="join-btn-right" onclick="showSQLJoin('right')">RIGHT JOIN</button>
+              <button class="fc-chip" id="join-btn-outer" onclick="showSQLJoin('outer')">FULL OUTER JOIN</button>
             </div>
 
             <div id="sql-join-stage">
@@ -685,9 +691,9 @@
           <p class="card-subtitle">Step through K-Means centroid initialization, distance assignment, centroid update, and convergence.</p>
 
           <div class="vis-container">
-            <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
-              <button class="btn btn-secondary" id="kmeans-step-btn" onclick="stepKMeans()"><i class="fas fa-step-forward"></i> Next K-Means Step</button>
-              <button class="btn-text" onclick="resetKMeans()"><i class="fas fa-redo"></i> Reset Clusters</button>
+            <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem;">
+              <button class="btn btn-secondary" id="kmeans-step-btn" style="min-height: 44px;" onclick="stepKMeans()"><i class="fas fa-step-forward"></i> Next K-Means Step</button>
+              <button class="btn-text" style="min-height: 44px; padding: 0.5rem 1rem;" onclick="resetKMeans()"><i class="fas fa-redo"></i> Reset Clusters</button>
               <span id="kmeans-step-label" style="font-size: 0.85rem; color: var(--accent-cyan); font-weight: 600;">Step 0: Unassigned Points</span>
             </div>
             <div id="kmeans-stage" style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: var(--radius-md);">
@@ -702,9 +708,15 @@
           <p class="card-subtitle">Simulate how a LangGraph State Graph routes queries conditionally to specialized agent nodes.</p>
 
           <div class="vis-container">
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem;">Tap a preset query or type custom text:</div>
+            <div class="sim-preset-chips" style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.8rem;">
+              <button class="fc-chip" onclick="setLangGraphPreset('Where can I download my latest invoice for refund?')">💳 Invoice / Refund</button>
+              <button class="fc-chip" onclick="setLangGraphPreset('What is the annual leave rollover policy for employees?')">🏖️ HR / Leave Policy</button>
+              <button class="fc-chip" onclick="setLangGraphPreset('Hello, what features does this platform support?')">🤖 General Support</button>
+            </div>
             <div class="vis-controls">
               <div class="control-group" style="flex: 1;">
-                <label>User Query for LangGraph Router:</label>
+                <label for="langgraph-query-input">User Query for LangGraph Router:</label>
                 <input type="text" id="langgraph-query-input" class="input-field" value="Where can I download my latest invoice for refund?">
               </div>
               <button class="btn" onclick="runLangGraphRouter()"><i class="fas fa-play"></i> Route Query</button>

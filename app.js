@@ -2363,6 +2363,19 @@ function runLangGraphRouter() {
   `;
 }
 
+function setRAGPreset(queryText) {
+  const input = document.getElementById("rag-query-input");
+  if (input) input.value = queryText;
+  const btn = document.getElementById("run-rag-sim-btn");
+  if (btn) btn.click();
+}
+
+function setLangGraphPreset(queryText) {
+  const input = document.getElementById("langgraph-query-input");
+  if (input) input.value = queryText;
+  runLangGraphRouter();
+}
+
 // -------------------------------------------------------------
 // FLASHCARDS SPACING DECK & SRS ENGINE (PHASE 6)
 // -------------------------------------------------------------
