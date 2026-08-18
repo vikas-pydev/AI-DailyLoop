@@ -37,6 +37,14 @@ let userState = {
     lastCompletedDate: null,
     completedDates: [],
     sessionsCompleted: 0
+  },
+
+  // Phase 9 Bookmarks State
+  bookmarks: {
+    topics: [],
+    questions: [],
+    flashcards: [],
+    formulas: []
   }
 };
 
@@ -95,6 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderQuizzes();
   setupArticulationStudio();
   renderBadges();
+  renderProgressDashboard();
 
   // Keyboard navigation for flashcards
   document.addEventListener("keydown", (e) => {
@@ -132,6 +141,17 @@ function loadUserState() {
           lastCompletedDate: null,
           completedDates: [],
           sessionsCompleted: 0
+        },
+        bookmarks: (parsed && parsed.bookmarks && typeof parsed.bookmarks === "object") ? {
+          topics: Array.isArray(parsed.bookmarks.topics) ? parsed.bookmarks.topics : [],
+          questions: Array.isArray(parsed.bookmarks.questions) ? parsed.bookmarks.questions : [],
+          flashcards: Array.isArray(parsed.bookmarks.flashcards) ? parsed.bookmarks.flashcards : [],
+          formulas: Array.isArray(parsed.bookmarks.formulas) ? parsed.bookmarks.formulas : []
+        } : {
+          topics: [],
+          questions: [],
+          flashcards: [],
+          formulas: []
         }
       };
     } catch (e) {
@@ -310,6 +330,8 @@ function switchTab(tabId) {
   // Dynamic panel refresh hook
   if (tabId === "tab-dashboard") {
     renderMobileHomeSummary();
+  } else if (tabId === "tab-achievements") {
+    renderProgressDashboard();
   }
 
   // Close Mobile Drawer if open
@@ -1589,6 +1611,11 @@ function renderTopicContent(topicId) {
           <button class="btn ${isFullPageMode ? 'btn-success' : 'btn-secondary'} btn-sm" onclick="toggleFullPageReader()" title="Toggle Full Width Reader">
             <i class="fas ${isFullPageMode ? 'fa-compress-arrows-alt' : 'fa-expand-arrows-alt'}"></i>
             ${isFullPageMode ? 'Exit Full Page' : 'Full Page Mode'}
+          </button>
+
+          <button class="btn btn-secondary btn-sm" onclick="toggleBookmark('topics', '${mod.id}', '${mod.title.replace(/'/g, "\\'")}')" title="Bookmark Topic">
+            <i class="${isBookmarked('topics', mod.id) ? 'fas fa-bookmark' : 'far fa-bookmark'}" style="${isBookmarked('topics', mod.id) ? 'color: var(--accent-cyan);' : ''}"></i>
+            ${isBookmarked('topics', mod.id) ? 'Saved' : 'Save'}
           </button>
 
           <button class="btn ${isCompleted ? 'btn-success' : 'btn-secondary'} btn-sm" onclick="toggleTopicCompletion('${mod.id}')">
@@ -3117,6 +3144,487 @@ function evaluateArticulation(text, q) {
   saveUserState();
 
   addXP(q.xp, `for articulation drill (${keywordCoverage}% key terms matched)`);
+}
+
+// -------------------------------------------------------------
+// PROGRESS, MISTAKE BANK & BOOKMARKS ENGINE (PHASE 9)
+// -------------------------------------------------------------
+
+let currentBookmarkFilter = "all";
+let activeRemediationMistake = null;
+
+function renderProgressDashboard() {
+  // 1. Hero Summary
+  const streakEl = document.getElementById("prog-streak-val");
+  const xpEl = document.getElementById("prog-xp-val");
+  const levelEl = document.getElementById("prog-level-val");
+  const overallMasteryEl = document.getElementById("prog-overall-mastery");
+  const overallBarEl = document.getElementById("prog-overall-bar");
+
+  const streakDays = userState.streak || 1;
+  if (streakEl) streakEl.textContent = `${streakDays} Day${streakDays > 1 ? 's' : ''}`;
+  if (xpEl) xpEl.textContent = `${userState.xp || 0} XP`;
+  
+  const currentLvl = APP_DATA.levels.find(l => l.level === userState.level) || APP_DATA.levels[0];
+  if (levelEl) levelEl.textContent = `Lvl ${userState.level}: ${currentLvl.title}`;
+
+  // 2. Compute Track & Overall Mastery
+  const trackScores = [];
+  APP_DATA.tracks.forEach(tr => {
+    const trModules = APP_DATA.modules.filter(m => m.track === tr.id);
+    let totalScore = 0;
+    let attemptedModules = 0;
+
+    trModules.forEach(m => {
+      const mScore = calculateTopicMastery(m.id);
+      totalScore += mScore;
+      if (mScore > 0 || (userState.completedTopics && userState.completedTopics.includes(m.id))) {
+        attemptedModules++;
+      }
+    });
+
+    const avgScore = trModules.length > 0 ? Math.round(totalScore / trModules.length) : 0;
+    trackScores.push({
+      track: tr,
+      score: avgScore,
+      attemptedCount: attemptedModules,
+      totalCount: trModules.length
+    });
+  });
+
+  const activeTracks = trackScores.filter(t => t.attemptedCount > 0);
+  const overallMastery = activeTracks.length > 0 
+    ? Math.round(activeTracks.reduce((acc, t) => acc + t.score, 0) / activeTracks.length)
+    : 0;
+
+  if (overallMasteryEl) overallMasteryEl.textContent = `${overallMastery}%`;
+  if (overallBarEl) overallBarEl.style.width = `${overallMastery}%`;
+
+  // 3. Learning Stats Grid
+  const topicsStat = document.getElementById("prog-stat-topics");
+  const quizzesStat = document.getElementById("prog-stat-quizzes");
+  const cardsStat = document.getElementById("prog-stat-cards");
+  const examStat = document.getElementById("prog-stat-exam");
+
+  if (topicsStat) topicsStat.textContent = `${(userState.completedTopics || []).length} / ${APP_DATA.modules.length}`;
+  if (quizzesStat) quizzesStat.textContent = `${(userState.completedQuizzes || []).length} / ${APP_DATA.quizzes.length}`;
+  
+  let srsMasteredCount = 0;
+  if (userState.flashcardSRS) {
+    Object.values(userState.flashcardSRS).forEach(s => {
+      if (s.lastRating === "Good" || s.lastRating === "Easy") srsMasteredCount++;
+    });
+  }
+  if (cardsStat) cardsStat.textContent = `${srsMasteredCount} / ${APP_DATA.flashcards.length}`;
+  if (examStat) examStat.textContent = `${userState.examHighScore || 0}%`;
+
+  // 4. Render Track Mastery Breakdown
+  renderTrackMasteryBreakdown(trackScores);
+
+  // 5. Render Weak Areas
+  renderWeakAreas();
+
+  // 6. Render Mistake Bank
+  renderMistakeBank();
+
+  // 7. Render Bookmarks
+  renderSavedBookmarks(currentBookmarkFilter);
+
+  // 8. Render Recent Activity
+  renderRecentActivity();
+}
+
+function renderTrackMasteryBreakdown(trackScores) {
+  const container = document.getElementById("prog-track-mastery-list");
+  if (!container) return;
+
+  container.innerHTML = trackScores.map(ts => {
+    const isStarted = ts.attemptedCount > 0;
+    return `
+      <div class="track-mastery-row">
+        <div class="track-mastery-header">
+          <span class="track-mastery-name">${ts.track.name}</span>
+          <span class="track-mastery-pct" style="color: ${isStarted ? 'var(--accent-cyan)' : 'var(--text-muted)'};">
+            ${isStarted ? `${ts.score}%` : 'Not started'}
+          </span>
+        </div>
+        <div class="exam-progress-track">
+          <div class="exam-progress-bar" style="width: ${isStarted ? ts.score : 0}%; background: ${ts.score >= 70 ? 'var(--accent-success)' : (ts.score >= 40 ? 'var(--accent-warning)' : 'var(--accent-primary)')};"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderWeakAreas() {
+  const container = document.getElementById("prog-weak-areas-list");
+  if (!container) return;
+
+  const weakTopics = [];
+  APP_DATA.modules.forEach(m => {
+    const mastery = calculateTopicMastery(m.id);
+    const hasActiveMistake = userState.mistakes && Object.values(userState.mistakes).some(mis => mis.topicId === m.id && !mis.resolved);
+    
+    if ((mastery > 0 && mastery < 60) || hasActiveMistake) {
+      weakTopics.push({ module: m, mastery, hasActiveMistake });
+    }
+  });
+
+  if (weakTopics.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 1rem; color: var(--accent-success); font-size: 0.88rem;">
+        <i class="fas fa-check-circle" style="font-size: 1.5rem; margin-bottom: 0.4rem; display: block;"></i>
+        All active topics are above 60% mastery! Keep up the momentum.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = weakTopics.slice(0, 4).map(w => `
+    <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+      <div>
+        <strong style="font-size: 0.88rem; color: #ffffff; display: block;">${w.module.title}</strong>
+        <span style="font-size: 0.75rem; color: var(--accent-warning);">
+          Mastery: ${w.mastery}% • ${w.hasActiveMistake ? 'Active mistakes to review' : 'Needs reinforcement'}
+        </span>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="practiceTopicDirectly('${w.module.id}')">
+        <i class="fas fa-play"></i> Practice
+      </button>
+    </div>
+  `).join('');
+}
+
+function practiceTopicDirectly(topicId) {
+  renderTopicContent(topicId);
+  switchTab("tab-curriculum");
+}
+
+function practiceWeakAreas() {
+  const firstWeak = APP_DATA.modules.find(m => calculateTopicMastery(m.id) < 60 && calculateTopicMastery(m.id) > 0);
+  if (firstWeak) {
+    practiceTopicDirectly(firstWeak.id);
+  } else {
+    startLearningFeed();
+  }
+}
+
+function renderMistakeBank() {
+  const container = document.getElementById("mistake-bank-items-container");
+  const countEl = document.getElementById("mistake-bank-count");
+  if (!container) return;
+
+  const mistakes = userState.mistakes ? Object.values(userState.mistakes).filter(m => !m.resolved) : [];
+
+  if (countEl) {
+    countEl.textContent = `${mistakes.length} question${mistakes.length === 1 ? '' : 's'} need review`;
+  }
+
+  if (mistakes.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 1.5rem 1rem; color: var(--text-muted);">
+        <div style="font-size: 2.2rem; margin-bottom: 0.4rem;">🎉</div>
+        <strong style="color: #ffffff; display: block; margin-bottom: 0.2rem;">No Mistakes in Bank!</strong>
+        <p style="font-size: 0.82rem;">Questions you answer incorrectly will appear here for targeted remediation.</p>
+      </div>
+    `;
+    const btnAll = document.getElementById("btn-practice-all-mistakes");
+    if (btnAll) btnAll.style.display = "none";
+    return;
+  }
+
+  const btnAll = document.getElementById("btn-practice-all-mistakes");
+  if (btnAll) btnAll.style.display = "inline-flex";
+
+  // Prioritize repeated mistakes then recent
+  const sorted = [...mistakes].sort((a, b) => (b.count || 1) - (a.count || 1));
+
+  container.innerHTML = sorted.map(m => {
+    const qObj = findQuestionById(m.contentId);
+    const qText = qObj ? qObj.question : `Question #${m.contentId}`;
+    const trackObj = APP_DATA.tracks.find(tr => tr.id === m.topicId) || { name: m.topicId };
+
+    return `
+      <div class="mistake-item-card">
+        <div class="mistake-item-header">
+          <div class="mistake-item-title">${qText}</div>
+          <button class="btn btn-primary btn-sm mistake-item-btn" onclick="openMistakeRemediation('${m.contentId}')">
+            <i class="fas fa-check-circle"></i> Review & Solve
+          </button>
+        </div>
+        <div class="mistake-item-meta">
+          <span class="module-tag" style="font-size: 0.7rem; background: rgba(99, 102, 241, 0.2); color: var(--accent-primary);">${trackObj.name}</span>
+          <span><i class="fas fa-times-circle" style="color: #ef4444;"></i> Missed ${m.count || 1}x</span>
+          <span>Last attempt: ${m.lastAttempted ? m.lastAttempted.split('T')[0] : 'Recent'}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function findQuestionById(contentId) {
+  // Check quizzes
+  const inQuizzes = APP_DATA.quizzes.find(q => q.id === contentId || String(q.id) === String(contentId));
+  if (inQuizzes) return inQuizzes;
+
+  // Check self-test in topics
+  for (const m of APP_DATA.modules) {
+    if (m.selfTest && (m.selfTest.id === contentId || m.id === contentId)) {
+      return m.selfTest;
+    }
+  }
+
+  // Fallback to first quiz
+  return APP_DATA.quizzes[0];
+}
+
+function openMistakeRemediation(contentId) {
+  const modal = document.getElementById("mistake-remediation-modal");
+  const stage = document.getElementById("remediation-content-stage");
+  const topicTag = document.getElementById("remediation-topic-tag");
+  if (!modal || !stage) return;
+
+  const q = findQuestionById(contentId);
+  if (!q) return;
+
+  activeRemediationMistake = { contentId, question: q };
+  if (topicTag) topicTag.textContent = `Remediation • ${q.track || 'Track Review'}`;
+
+  const letters = ["A", "B", "C", "D", "E"];
+
+  stage.innerHTML = `
+    <div style="font-size: 1.02rem; font-weight: 600; color: #ffffff; line-height: 1.45; margin-bottom: 1rem;">
+      ${q.question}
+    </div>
+    <div class="exam-options-list" style="margin-bottom: 1.2rem;">
+      ${q.options.map((opt, idx) => `
+        <button class="exam-option-card" id="remed-opt-${idx}" onclick="submitMistakeRemediation('${contentId}', ${idx}, ${q.correctIndex}, '${q.track || 'track1'}')">
+          <span class="exam-option-radio">${letters[idx]}</span>
+          <span>${opt}</span>
+        </button>
+      `).join('')}
+    </div>
+    <div id="remediation-feedback-box" style="display: none; padding: 0.85rem; border-radius: var(--radius-sm); font-size: 0.88rem;"></div>
+  `;
+
+  modal.style.display = "flex";
+}
+
+function closeMistakeRemediationModal() {
+  const modal = document.getElementById("mistake-remediation-modal");
+  if (modal) modal.style.display = "none";
+  activeRemediationMistake = null;
+  renderProgressDashboard();
+}
+
+function submitMistakeRemediation(contentId, selectedIdx, correctIdx, topicId) {
+  const fbBox = document.getElementById("remediation-feedback-box");
+  const isCorrect = selectedIdx === correctIdx;
+
+  document.querySelectorAll("[id^='remed-opt-']").forEach((btn, idx) => {
+    btn.disabled = true;
+    if (idx === correctIdx) {
+      btn.style.borderColor = "var(--accent-success)";
+      btn.style.background = "rgba(16, 185, 129, 0.2)";
+    } else if (idx === selectedIdx && !isCorrect) {
+      btn.style.borderColor = "#ef4444";
+      btn.style.background = "rgba(239, 68, 68, 0.2)";
+    }
+  });
+
+  if (isCorrect) {
+    if (userState.mistakes && userState.mistakes[contentId]) {
+      userState.mistakes[contentId].resolved = true;
+    }
+    recordLearningResult({
+      contentId,
+      contentType: "quiz",
+      topicId: topicId || "track1",
+      correct: true
+    });
+    awardXPOnce(`remediation_${contentId}_${getLocalDateKey()}`, 30, "for resolving Mistake Bank question");
+    saveUserState();
+
+    if (fbBox) {
+      fbBox.style.display = "block";
+      fbBox.style.background = "rgba(16, 185, 129, 0.15)";
+      fbBox.style.border = "1px solid var(--accent-success)";
+      fbBox.style.color = "#ffffff";
+      fbBox.innerHTML = `<strong><i class="fas fa-check-circle" style="color: var(--accent-success);"></i> Correct! Mistake Resolved! (+30 XP)</strong>`;
+    }
+
+    setTimeout(() => {
+      closeMistakeRemediationModal();
+      showToast("🎉 Mistake resolved & Topic Mastery boosted!");
+    }, 1200);
+  } else {
+    recordLearningResult({
+      contentId,
+      contentType: "quiz",
+      topicId: topicId || "track1",
+      correct: false
+    });
+    if (fbBox) {
+      fbBox.style.display = "block";
+      fbBox.style.background = "rgba(239, 68, 68, 0.15)";
+      fbBox.style.border = "1px solid #ef4444";
+      fbBox.style.color = "#fca5a5";
+      fbBox.innerHTML = `<strong><i class="fas fa-times-circle"></i> Incorrect.</strong> Correct answer is option ${String.fromCharCode(65 + correctIdx)}. Review this concept in Curriculum.`;
+    }
+  }
+}
+
+function practiceAllMistakes() {
+  const unresolved = userState.mistakes ? Object.values(userState.mistakes).filter(m => !m.resolved) : [];
+  if (unresolved.length > 0) {
+    openMistakeRemediation(unresolved[0].contentId);
+  } else {
+    showToast("No active mistakes to practice!");
+  }
+}
+
+// Bookmarks System
+function toggleBookmark(type, id, title) {
+  if (!userState.bookmarks) {
+    userState.bookmarks = { topics: [], questions: [], flashcards: [], formulas: [] };
+  }
+  if (!userState.bookmarks[type]) {
+    userState.bookmarks[type] = [];
+  }
+
+  const existingIdx = userState.bookmarks[type].findIndex(b => b.id === id);
+  if (existingIdx >= 0) {
+    userState.bookmarks[type].splice(existingIdx, 1);
+    showToast("Bookmark removed");
+  } else {
+    userState.bookmarks[type].push({ id, title, savedAt: new Date().toISOString() });
+    showToast("Bookmark saved!");
+  }
+
+  saveUserState();
+  renderSavedBookmarks(currentBookmarkFilter);
+}
+
+function isBookmarked(type, id) {
+  if (!userState.bookmarks || !userState.bookmarks[type]) return false;
+  return userState.bookmarks[type].some(b => b.id === id);
+}
+
+function removeBookmark(type, id) {
+  if (userState.bookmarks && userState.bookmarks[type]) {
+    userState.bookmarks[type] = userState.bookmarks[type].filter(b => b.id !== id);
+    saveUserState();
+    renderSavedBookmarks(currentBookmarkFilter);
+    showToast("Removed from saved items");
+  }
+}
+
+function filterBookmarks(filterType) {
+  currentBookmarkFilter = filterType;
+  document.querySelectorAll("[id^='bm-filter-']").forEach(btn => {
+    btn.classList.toggle("active", btn.id === `bm-filter-${filterType}`);
+  });
+  renderSavedBookmarks(filterType);
+}
+
+function renderSavedBookmarks(filterType = "all") {
+  const container = document.getElementById("saved-bookmarks-container");
+  const countEl = document.getElementById("saved-bookmarks-count");
+  if (!container) return;
+
+  const bms = userState.bookmarks || { topics: [], questions: [], flashcards: [], formulas: [] };
+  let items = [];
+
+  if (filterType === "all" || filterType === "topics") {
+    (bms.topics || []).forEach(t => items.push({ ...t, type: "topics", label: "Topic" }));
+  }
+  if (filterType === "all" || filterType === "questions") {
+    (bms.questions || []).forEach(q => items.push({ ...q, type: "questions", label: "Question" }));
+  }
+  if (filterType === "all" || filterType === "flashcards") {
+    (bms.flashcards || []).forEach(f => items.push({ ...f, type: "flashcards", label: "Flashcard" }));
+  }
+  if (filterType === "all" || filterType === "formulas") {
+    (bms.formulas || []).forEach(f => items.push({ ...f, type: "formulas", label: "Formula" }));
+  }
+
+  if (countEl) countEl.textContent = `${items.length} saved`;
+
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 1.2rem; color: var(--text-muted); font-size: 0.85rem;">
+        <i class="far fa-bookmark" style="font-size: 1.5rem; margin-bottom: 0.4rem; display: block;"></i>
+        Nothing saved in this category yet.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = items.map(it => `
+    <div class="saved-item-card">
+      <div class="saved-item-info">
+        <span class="saved-item-type">${it.label}</span>
+        <div class="saved-item-title">${it.title || it.id}</div>
+      </div>
+      <div style="display: flex; gap: 0.4rem;">
+        <button class="btn btn-secondary btn-sm" onclick="openBookmark('${it.type}', '${it.id}')">
+          <i class="fas fa-external-link-alt"></i> Open
+        </button>
+        <button class="btn btn-text btn-sm" style="color: #ef4444; padding: 0.3rem 0.6rem;" onclick="removeBookmark('${it.type}', '${it.id}')" title="Remove">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openBookmark(type, id) {
+  if (type === "topics") {
+    renderTopicContent(id);
+    switchTab("tab-curriculum");
+  } else if (type === "flashcards") {
+    switchTab("tab-flashcards");
+  } else if (type === "questions") {
+    switchTab("tab-quizzes");
+  } else if (type === "formulas") {
+    switchTab("tab-formulas");
+  }
+}
+
+function renderRecentActivity() {
+  const container = document.getElementById("prog-recent-activity-list");
+  if (!container) return;
+
+  const history = userState.attemptHistory || [];
+  if (history.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 1rem; color: var(--text-muted); font-size: 0.85rem;">
+        No recent activity logged. Complete quizzes or flashcards to view your history.
+      </div>
+    `;
+    return;
+  }
+
+  const recent = history.slice(-5).reverse();
+  container.innerHTML = recent.map(h => {
+    const isPass = h.correct;
+    return `
+      <div class="activity-item-row">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <span style="color: ${isPass ? 'var(--accent-success)' : '#ef4444'}; font-size: 1rem;">
+            ${isPass ? '✓' : '✗'}
+          </span>
+          <div>
+            <strong style="color: #ffffff; text-transform: capitalize;">${h.contentType || 'Activity'} Drill</strong>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">${h.topicId || 'Curriculum'}</div>
+          </div>
+        </div>
+        <span style="font-size: 0.72rem; color: var(--text-muted);">
+          ${h.timestamp ? h.timestamp.split('T')[0] : 'Today'}
+        </span>
+      </div>
+    `;
+  }).join('');
 }
 
 // -------------------------------------------------------------

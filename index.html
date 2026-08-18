@@ -936,8 +936,143 @@
         </div>
       </section>
 
-      <!-- TAB 8: ACHIEVEMENTS & BADGES -->
+      <!-- TAB 8: PROGRESS, MISTAKE BANK & ACHIEVEMENTS -->
       <section id="tab-achievements" class="tab-panel">
+        
+        <!-- Progress Hero Summary Card -->
+        <div class="glass-card progress-hero-card">
+          <div class="progress-hero-row">
+            <div class="progress-hero-stat">
+              <span class="progress-hero-icon">🔥</span>
+              <div>
+                <div class="progress-hero-val" id="prog-streak-val">1 Day</div>
+                <div class="progress-hero-lbl">Daily Streak</div>
+              </div>
+            </div>
+            <div class="progress-hero-stat">
+              <span class="progress-hero-icon">⚡</span>
+              <div>
+                <div class="progress-hero-val" id="prog-xp-val">0 XP</div>
+                <div class="progress-hero-lbl">Total Points</div>
+              </div>
+            </div>
+            <div class="progress-hero-stat">
+              <span class="progress-hero-icon">⭐</span>
+              <div>
+                <div class="progress-hero-val" id="prog-level-val">Level 1</div>
+                <div class="progress-hero-lbl">AI Apprentice</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Overall Mastery Bar -->
+          <div style="margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <span style="font-size: 0.88rem; font-weight: 700; color: #ffffff;">Overall Curriculum Mastery</span>
+              <strong id="prog-overall-mastery" style="font-size: 1.05rem; color: var(--accent-cyan);">0%</strong>
+            </div>
+            <div class="exam-progress-track">
+              <div class="exam-progress-bar" id="prog-overall-bar" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Key Learning Stats -->
+        <div class="prog-stats-grid">
+          <div class="prog-stat-card">
+            <div class="prog-stat-icon" style="color: var(--accent-primary);"><i class="fas fa-book-open"></i></div>
+            <div class="prog-stat-info">
+              <div class="prog-stat-num" id="prog-stat-topics">0 / 46</div>
+              <div class="prog-stat-lbl">Topics Completed</div>
+            </div>
+          </div>
+          <div class="prog-stat-card">
+            <div class="prog-stat-icon" style="color: var(--accent-success);"><i class="fas fa-check-circle"></i></div>
+            <div class="prog-stat-info">
+              <div class="prog-stat-num" id="prog-stat-quizzes">0 / 6</div>
+              <div class="prog-stat-lbl">Quizzes Passed</div>
+            </div>
+          </div>
+          <div class="prog-stat-card">
+            <div class="prog-stat-icon" style="color: var(--accent-cyan);"><i class="fas fa-layer-group"></i></div>
+            <div class="prog-stat-info">
+              <div class="prog-stat-num" id="prog-stat-cards">0 / 46</div>
+              <div class="prog-stat-lbl">Cards Mastered</div>
+            </div>
+          </div>
+          <div class="prog-stat-card">
+            <div class="prog-stat-icon" style="color: #fbbf24;"><i class="fas fa-medal"></i></div>
+            <div class="prog-stat-info">
+              <div class="prog-stat-num" id="prog-stat-exam">0%</div>
+              <div class="prog-stat-lbl">Best Exam Score</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Track Mastery Breakdown (6 Tracks) -->
+        <div class="glass-card">
+          <h3 class="card-title"><i class="fas fa-chart-pie" style="color: var(--accent-primary);"></i> Track Mastery Breakdown</h3>
+          <p class="card-subtitle">Calculated dynamically based on self-tests, quizzes, and scenario performance.</p>
+          <div class="track-mastery-list" id="prog-track-mastery-list">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+
+        <!-- Weak Areas & Practice Recommendation -->
+        <div class="glass-card" id="prog-weak-areas-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem;">
+            <h3 class="card-title" style="margin: 0;"><i class="fas fa-exclamation-triangle" style="color: var(--accent-warning);"></i> Focus & Weak Areas</h3>
+            <button class="btn btn-primary btn-sm" onclick="practiceWeakAreas()"><i class="fas fa-bolt"></i> Practice Weak Areas</button>
+          </div>
+          <p class="card-subtitle">Topics with low accuracy or unresolved mistakes that need attention.</p>
+          <div id="prog-weak-areas-list">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+
+        <!-- Mistake Bank Review Center -->
+        <div class="glass-card" id="mistake-bank-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <h3 class="card-title" style="margin: 0;"><i class="fas fa-undo-alt" style="color: #ef4444;"></i> Mistake Bank</h3>
+              <span style="font-size: 0.8rem; color: var(--text-muted);" id="mistake-bank-count">0 items need review</span>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btn-practice-all-mistakes" onclick="practiceAllMistakes()"><i class="fas fa-play"></i> Practice Mistakes</button>
+          </div>
+          <p class="card-subtitle">Questions you answered incorrectly across Quizzes, Scenarios, and Timed Exams.</p>
+          <div class="mistake-bank-list" id="mistake-bank-items-container">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+
+        <!-- Bookmarks / Saved Content Hub -->
+        <div class="glass-card" id="saved-bookmarks-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem;">
+            <h3 class="card-title" style="margin: 0;"><i class="fas fa-bookmark" style="color: var(--accent-cyan);"></i> Saved & Bookmarks</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);" id="saved-bookmarks-count">0 saved</span>
+          </div>
+          <div class="fc-track-filter" style="margin-bottom: 0.8rem;">
+            <button class="fc-chip active" id="bm-filter-all" onclick="filterBookmarks('all')">All</button>
+            <button class="fc-chip" id="bm-filter-topics" onclick="filterBookmarks('topics')">Topics</button>
+            <button class="fc-chip" id="bm-filter-questions" onclick="filterBookmarks('questions')">Questions</button>
+            <button class="fc-chip" id="bm-filter-flashcards" onclick="filterBookmarks('flashcards')">Flashcards</button>
+            <button class="fc-chip" id="bm-filter-formulas" onclick="filterBookmarks('formulas')">Formulas</button>
+          </div>
+          <div class="saved-bookmarks-list" id="saved-bookmarks-container">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+
+        <!-- Recent Activity Stream -->
+        <div class="glass-card">
+          <h3 class="card-title"><i class="fas fa-history" style="color: var(--accent-primary);"></i> Recent Learning Activity</h3>
+          <p class="card-subtitle">Latest quizzes, scenarios, and flashcard reviews recorded in your learning log.</p>
+          <div class="recent-activity-list" id="prog-recent-activity-list">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+
+        <!-- Achievements & Badges Gallery -->
         <div class="glass-card">
           <h2 class="card-title"><i class="fas fa-trophy" style="color: #fbbf24;"></i> Achievements & Unlockable Badges</h2>
           <p class="card-subtitle">Earn badges as you maintain daily learning streaks, complete curriculum modules, and score high on quizzes and exams.</p>
@@ -945,7 +1080,21 @@
             <!-- Rendered by app.js -->
           </div>
         </div>
+
       </section>
+
+      <!-- MISTAKE REMEDIATION MODAL -->
+      <div class="exam-modal-backdrop" id="mistake-remediation-modal" style="display: none;">
+        <div class="exam-modal-content" style="max-width: 520px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+            <span class="module-tag" id="remediation-topic-tag" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;">Mistake Remediation</span>
+            <button class="btn-text" onclick="closeMistakeRemediationModal()" style="padding: 0.2rem 0.5rem; font-size: 1.1rem;">✕</button>
+          </div>
+          <div id="remediation-content-stage">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+      </div>
 
     </main>
   </div>
