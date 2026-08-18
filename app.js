@@ -26,7 +26,18 @@ let userState = {
   examHighScore: 0,
   agentVisDone: false,
   leakDebugDone: false,
-  lastStudiedTopic: "topic1"
+  lastStudiedTopic: "topic1",
+
+  // Phase 5 Adaptive Engine State
+  topicMastery: {},
+  mistakes: {},
+  attemptHistory: [],
+  flashcardSRS: {},
+  dailyLoop: {
+    lastCompletedDate: null,
+    completedDates: [],
+    sessionsCompleted: 0
+  }
 };
 
 // Global Interactive Simulator States
@@ -108,7 +119,20 @@ function loadUserState() {
       userState = {
         ...userState,
         ...parsed,
-        lastStudiedTopic: (parsed && parsed.lastStudiedTopic) ? parsed.lastStudiedTopic : "topic1"
+        lastStudiedTopic: (parsed && parsed.lastStudiedTopic) ? parsed.lastStudiedTopic : "topic1",
+        topicMastery: (parsed && parsed.topicMastery && typeof parsed.topicMastery === "object") ? parsed.topicMastery : {},
+        mistakes: (parsed && parsed.mistakes && typeof parsed.mistakes === "object") ? parsed.mistakes : {},
+        attemptHistory: (parsed && Array.isArray(parsed.attemptHistory)) ? parsed.attemptHistory : [],
+        flashcardSRS: (parsed && parsed.flashcardSRS && typeof parsed.flashcardSRS === "object") ? parsed.flashcardSRS : {},
+        dailyLoop: (parsed && parsed.dailyLoop && typeof parsed.dailyLoop === "object") ? {
+          lastCompletedDate: parsed.dailyLoop.lastCompletedDate || null,
+          completedDates: Array.isArray(parsed.dailyLoop.completedDates) ? parsed.dailyLoop.completedDates : [],
+          sessionsCompleted: parsed.dailyLoop.sessionsCompleted || 0
+        } : {
+          lastCompletedDate: null,
+          completedDates: [],
+          sessionsCompleted: 0
+        }
       };
     } catch (e) {
       console.error("Failed to parse userState", e);
@@ -368,7 +392,156 @@ function setupTabNavigation() {
 }
 
 // -------------------------------------------------------------
-// MOBILE HOME & DAILY HUB ENGINE (PHASE 3)
+// CENTRAL RESULT PIPELINE, MASTERY & XP REWARDS (PHASE 5)
+// -------------------------------------------------------------
+
+const awardedXPEvents = new Set();
+
+/**
+ * Idempotent XP awarding helper. Prevents duplicate rewards for the same content interaction.
+ */
+function awardXPOnce(eventKey, amount, reason) {
+  if (awardedXPEvents.has(eventKey)) return;
+  awardedXPEvents.add(eventKey);
+  addXP(amount, reason);
+}
+
+/**
+ * Deterministic Topic Mastery Calculation (0–100%)
+ * 
+ * Formula:
+ * - Base completion in curriculum: +40 pts
+ * - Accuracy on quiz questions for this topic in attemptHistory: up to +40 pts (accuracy * 40)
+ * - Flashcard SRS mastery (Good/Easy ratings): up to +20 pts
+ * - Active unresolved mistakes in Mistake Bank: -15 pts per active mistake
+ * Result is clamped to [0, 100].
+ */
+function calculateTopicMastery(topicId) {
+  let score = 0;
+  
+  // 1. Topic completion signal (40 pts)
+  if (userState.completedTopics && userState.completedTopics.includes(topicId)) {
+    score += 40;
+  }
+
+  // 2. Quiz accuracy signal (up to 40 pts)
+  const topicAttempts = (userState.attemptHistory || []).filter(a => a.topicId === topicId && (a.contentType === "mcq" || a.contentType === "quiz"));
+  if (topicAttempts.length > 0) {
+    const correctCount = topicAttempts.filter(a => a.correct).length;
+    const accuracy = correctCount / topicAttempts.length;
+    score += Math.round(accuracy * 40);
+  } else if (userState.completedTopics && userState.completedTopics.includes(topicId)) {
+    score += 20; // Fallback credit if marked complete without quiz records
+  }
+
+  // 3. Flashcard SRS signal (up to 20 pts)
+  const topicCards = APP_DATA.flashcards.filter(f => {
+    const mod = APP_DATA.modules.find(m => m.id === topicId);
+    return mod && f.track === mod.track;
+  });
+  if (topicCards.length > 0) {
+    let masteredCards = 0;
+    topicCards.forEach(c => {
+      const srs = userState.flashcardSRS ? userState.flashcardSRS[c.id] : null;
+      if (srs && (srs.lastRating === "Good" || srs.lastRating === "Easy")) {
+        masteredCards++;
+      }
+    });
+    const cardRatio = masteredCards / topicCards.length;
+    score += Math.round(cardRatio * 20);
+  }
+
+  // 4. Mistake deduction (-15 pts per active unresolved mistake)
+  if (userState.mistakes) {
+    Object.values(userState.mistakes).forEach(m => {
+      if (m.topicId === topicId && !m.resolved) {
+        score -= 15;
+      }
+    });
+  }
+
+  return Math.max(0, Math.min(100, score));
+}
+
+/**
+ * Central Learning Result Pipeline
+ * Processes any learning event (MCQ, flashcard, scenario, articulation, topic) and
+ * updates attempts, mistakes, SRS schedules, mastery, and streak.
+ */
+function recordLearningResult({ contentId, contentType, topicId, correct, rating = null }) {
+  const timestamp = new Date().toISOString();
+
+  // 1. Record bounded attempt history (max 50)
+  if (!userState.attemptHistory) userState.attemptHistory = [];
+  userState.attemptHistory.unshift({
+    contentId,
+    contentType,
+    topicId,
+    correct: !!correct,
+    timestamp
+  });
+  if (userState.attemptHistory.length > 50) {
+    userState.attemptHistory.pop();
+  }
+
+  // 2. Mistake Bank tracking
+  if (!userState.mistakes) userState.mistakes = {};
+  if (contentType === "mcq" || contentType === "scenario" || contentType === "quiz") {
+    if (!correct) {
+      if (!userState.mistakes[contentId]) {
+        userState.mistakes[contentId] = {
+          contentId,
+          topicId,
+          incorrectCount: 1,
+          lastIncorrectAt: timestamp,
+          resolved: false
+        };
+      } else {
+        userState.mistakes[contentId].incorrectCount += 1;
+        userState.mistakes[contentId].lastIncorrectAt = timestamp;
+        userState.mistakes[contentId].resolved = false;
+      }
+    } else {
+      if (userState.mistakes[contentId]) {
+        userState.mistakes[contentId].resolved = true;
+      }
+    }
+  }
+
+  // 3. Flashcard SRS scheduling
+  if (!userState.flashcardSRS) userState.flashcardSRS = {};
+  if (contentType === "flashcard" && rating) {
+    const prev = userState.flashcardSRS[contentId] || { intervalDays: 1, repetitions: 0 };
+    let intervalDays = 1;
+    if (rating === "Again") intervalDays = 1;
+    else if (rating === "Hard") intervalDays = Math.max(1, Math.round((prev.intervalDays || 1) * 1.2));
+    else if (rating === "Good") intervalDays = Math.max(2, Math.round((prev.intervalDays || 1) * 2.0));
+    else if (rating === "Easy") intervalDays = Math.max(4, Math.round((prev.intervalDays || 1) * 3.5));
+
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + intervalDays);
+
+    userState.flashcardSRS[contentId] = {
+      lastReviewed: timestamp,
+      nextReviewDate: nextDate.toISOString().split('T')[0],
+      intervalDays,
+      repetitions: (prev.repetitions || 0) + 1,
+      lastRating: rating
+    };
+  }
+
+  // 4. Update Topic Mastery
+  if (topicId) {
+    if (!userState.topicMastery) userState.topicMastery = {};
+    userState.topicMastery[topicId] = calculateTopicMastery(topicId);
+  }
+
+  saveUserState();
+  renderMobileHomeSummary();
+}
+
+// -------------------------------------------------------------
+// MOBILE HOME & DAILY HUB ENGINE
 // -------------------------------------------------------------
 
 function getGreetingText() {
@@ -379,6 +552,8 @@ function getGreetingText() {
 }
 
 function renderMobileHomeSummary() {
+  const today = new Date().toISOString().split('T')[0];
+
   // 1. Dynamic Greeting
   const greetingEl = document.getElementById("mobile-greeting-text");
   if (greetingEl) greetingEl.textContent = getGreetingText();
@@ -407,7 +582,28 @@ function renderMobileHomeSummary() {
     }
   }
 
-  // 3. Continue Learning Resume Card
+  // 3. Daily Loop Hero Card State (Completed vs Ready)
+  const isLoopDoneToday = userState.dailyLoop && userState.dailyLoop.lastCompletedDate === today;
+  const loopTagEl = document.querySelector(".mobile-loop-tag");
+  const loopBtnEl = document.querySelector(".btn-daily-loop");
+
+  if (loopTagEl) {
+    if (isLoopDoneToday) {
+      loopTagEl.innerHTML = `<span style="color: var(--accent-success);"><i class="fas fa-check-circle"></i> TODAY'S LOOP COMPLETED</span>`;
+    } else {
+      loopTagEl.textContent = "⚡ TODAY'S RECOMMENDED ACTION";
+    }
+  }
+
+  if (loopBtnEl) {
+    if (isLoopDoneToday) {
+      loopBtnEl.innerHTML = `<i class="fas fa-redo"></i> Practice Another Set`;
+    } else {
+      loopBtnEl.innerHTML = `<i class="fas fa-play"></i> Start Daily Loop`;
+    }
+  }
+
+  // 4. Continue Learning Resume Card
   const lastTopicId = userState.lastStudiedTopic || currentTopicId || "topic1";
   const mod = APP_DATA.modules.find(m => m.id === lastTopicId) || APP_DATA.modules[0];
   const trackObj = APP_DATA.tracks.find(t => t.id === mod.track) || { name: "Core Curriculum" };
@@ -417,7 +613,7 @@ function renderMobileHomeSummary() {
   if (contTitleEl) contTitleEl.textContent = `Topic ${mod.number}: ${mod.title}`;
   if (contTrackEl) contTrackEl.textContent = trackObj.name;
 
-  // 4. Progress Metrics
+  // 5. Progress Metrics
   const statTopicsEl = document.getElementById("mobile-stat-topics");
   const statQuizzesEl = document.getElementById("mobile-stat-quizzes");
   const statBadgesEl = document.getElementById("mobile-stat-badges");
@@ -426,20 +622,38 @@ function renderMobileHomeSummary() {
   if (statQuizzesEl) statQuizzesEl.textContent = `${userState.completedQuizzes ? userState.completedQuizzes.length : 0} / ${APP_DATA.quizzes.length}`;
   if (statBadgesEl) statBadgesEl.textContent = `${userState.unlockedBadges ? userState.unlockedBadges.length : 0} / ${APP_DATA.badges.length}`;
 
-  // 5. Weak Areas / Recommended Focus Topics
+  // 6. Weak Areas / Recommended Focus (Prioritizing Active Mistakes & Low Mastery)
   const weakContainer = document.getElementById("mobile-weak-areas-container");
   if (weakContainer) {
-    const uncompleted = APP_DATA.modules.filter(m => !userState.completedTopics || !userState.completedTopics.includes(m.id));
-    if (uncompleted.length > 0 && userState.completedTopics && userState.completedTopics.length > 0) {
-      const topFocus = uncompleted.slice(0, 2);
-      weakContainer.innerHTML = topFocus.map(f => `
-        <div class="weak-topic-item">
-          <span>Topic ${f.number}: ${f.title}</span>
-          <button class="weak-topic-btn" onclick="openTopicFromHome('${f.id}')">Practice</button>
-        </div>
-      `).join('');
+    const activeMistakes = Object.values(userState.mistakes || {}).filter(m => !m.resolved);
+    if (activeMistakes.length > 0) {
+      const topMistakes = activeMistakes.slice(0, 2);
+      weakContainer.innerHTML = topMistakes.map(m => {
+        const tMod = APP_DATA.modules.find(mod => mod.id === m.topicId) || APP_DATA.modules[0];
+        return `
+          <div class="weak-topic-item" style="border-color: rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.08);">
+            <span><strong style="color: #fca5a5;">⚠ ${m.incorrectCount} mistake${m.incorrectCount > 1 ? 's' : ''}:</strong> Topic ${tMod.number}: ${tMod.title.slice(0, 26)}...</span>
+            <button class="weak-topic-btn" style="background: #ef4444; color: #ffffff;" onclick="openTopicFromHome('${tMod.id}')">Review</button>
+          </div>
+        `;
+      }).join('');
     } else {
-      weakContainer.innerHTML = `<div class="empty-state-text">No weak areas yet 🎉 Keep practicing to identify topics that need more attention.</div>`;
+      // Find low mastery or next uncompleted topic
+      const uncompleted = APP_DATA.modules.filter(m => !userState.completedTopics || !userState.completedTopics.includes(m.id));
+      if (uncompleted.length > 0 && userState.completedTopics && userState.completedTopics.length > 0) {
+        const topFocus = uncompleted.slice(0, 2);
+        weakContainer.innerHTML = topFocus.map(f => {
+          const mastery = userState.topicMastery ? (userState.topicMastery[f.id] || 0) : 0;
+          return `
+            <div class="weak-topic-item">
+              <span>Topic ${f.number}: ${f.title.slice(0, 28)}... <small style="color: var(--text-muted);">(${mastery}% mastery)</small></span>
+              <button class="weak-topic-btn" onclick="openTopicFromHome('${f.id}')">Practice</button>
+            </div>
+          `;
+        }).join('');
+      } else {
+        weakContainer.innerHTML = `<div class="empty-state-text">No weak areas yet 🎉 Keep practicing to identify topics that need more attention.</div>`;
+      }
     }
   }
 }
@@ -468,76 +682,125 @@ function startDailyLoopEntry() {
 }
 
 // -------------------------------------------------------------
-// MOBILE LEARNING FEED ENGINE (PHASE 4)
+// ADAPTIVE DAILY LOOP ENGINE & SESSION GENERATION (PHASE 5)
 // -------------------------------------------------------------
 
 let currentFeedItems = [];
 let answeredFeedCards = {};
 
-function generateLearningFeed() {
-  const activeTopicId = userState.lastStudiedTopic || currentTopicId || "topic1";
-  const mod = APP_DATA.modules.find(m => m.id === activeTopicId) || APP_DATA.modules[0];
-  const activeTrack = mod.track || "track1";
+/**
+ * Adaptive Daily Loop Generator
+ * Deterministically constructs a 6-step personalized session based on:
+ * 1. Active mistakes in Mistake Bank
+ * 2. Due flashcards from SRS schedule
+ * 3. Low mastery topics
+ * 4. Active syllabus progression
+ */
+function generateAdaptiveDailyLoopSession() {
+  const today = new Date().toISOString().split('T')[0];
 
-  const feed = [];
+  // 1. Identify Target Topic Priority
+  const activeMistakes = Object.values(userState.mistakes || {}).filter(m => !m.resolved);
+  let targetTopicId = userState.lastStudiedTopic || "topic1";
 
-  // 1. Concept Card (Source: Active Topic)
-  const firstSec = (mod.sections && mod.sections.length > 0) ? mod.sections[0] : null;
-  const takeaway = (mod.keyTakeaways && mod.keyTakeaways.length > 0) ? mod.keyTakeaways[0] : mod.summary;
+  if (activeMistakes.length > 0 && activeMistakes[0].topicId) {
+    targetTopicId = activeMistakes[0].topicId;
+  } else {
+    // Check topics with lowest mastery
+    const lowMasteryTopics = Object.keys(userState.topicMastery || {}).filter(tId => (userState.topicMastery[tId] || 0) < 60);
+    if (lowMasteryTopics.length > 0) {
+      targetTopicId = lowMasteryTopics[0];
+    } else {
+      const uncompleted = APP_DATA.modules.filter(m => !userState.completedTopics || !userState.completedTopics.includes(m.id));
+      if (uncompleted.length > 0) {
+        targetTopicId = uncompleted[0].id;
+      }
+    }
+  }
 
-  feed.push({
-    id: `feed_concept_${mod.id}`,
+  const targetMod = APP_DATA.modules.find(m => m.id === targetTopicId) || APP_DATA.modules[0];
+  const targetTrack = targetMod.track || "track1";
+
+  const session = [];
+
+  // 1. LEARN: Concept Snapshot
+  const firstSec = (targetMod.sections && targetMod.sections.length > 0) ? targetMod.sections[0] : null;
+  const takeaway = (targetMod.keyTakeaways && targetMod.keyTakeaways.length > 0) ? targetMod.keyTakeaways[0] : targetMod.summary;
+
+  session.push({
+    id: `feed_concept_${targetMod.id}`,
     type: "concept",
-    topicId: mod.id,
-    track: mod.track,
-    title: `Topic ${mod.number}: ${mod.title}`,
-    subtitle: mod.subtitle,
+    topicId: targetMod.id,
+    track: targetMod.track,
+    title: `Topic ${targetMod.number}: ${targetMod.title}`,
+    subtitle: targetMod.subtitle,
     sectionHeading: firstSec ? firstSec.heading : "Core Concept",
-    content: firstSec ? firstSec.content : mod.summary,
+    content: firstSec ? firstSec.content : targetMod.summary,
     takeaway: takeaway
   });
 
-  // 2. Spaced Flashcard Card (Source: APP_DATA.flashcards matching track or overall)
-  const trackCards = APP_DATA.flashcards.filter(f => f.track === activeTrack);
-  const flashcard = trackCards.length > 0 ? trackCards[0] : APP_DATA.flashcards[0];
-  if (flashcard) {
-    feed.push({
-      id: `feed_fc_${flashcard.id}`,
+  // 2. RECALL: Due SRS Flashcard or Track Card
+  let targetCard = null;
+  if (userState.flashcardSRS) {
+    const dueCardId = Object.keys(userState.flashcardSRS).find(cId => {
+      const srs = userState.flashcardSRS[cId];
+      return srs && srs.nextReviewDate <= today;
+    });
+    if (dueCardId) {
+      targetCard = APP_DATA.flashcards.find(f => f.id === dueCardId);
+    }
+  }
+  if (!targetCard) {
+    const trackCards = APP_DATA.flashcards.filter(f => f.track === targetTrack);
+    targetCard = trackCards.length > 0 ? trackCards[0] : APP_DATA.flashcards[0];
+  }
+
+  if (targetCard) {
+    session.push({
+      id: `feed_fc_${targetCard.id}`,
       type: "flashcard",
-      topicId: mod.id,
-      track: flashcard.track,
+      topicId: targetMod.id,
+      track: targetCard.track,
       title: "Active Recall Flashcard",
-      front: flashcard.front,
-      back: flashcard.back,
-      math: flashcard.math
+      front: targetCard.front,
+      back: targetCard.back,
+      math: targetCard.math
     });
   }
 
-  // 3. MCQ Card (Source: APP_DATA.quizzes matching track or fallback)
-  const trackQuizzes = APP_DATA.quizzes.filter(q => q.track === activeTrack);
-  const quiz = trackQuizzes.length > 0 ? trackQuizzes[0] : APP_DATA.quizzes[0];
-  if (quiz) {
-    feed.push({
-      id: `feed_mcq_${quiz.id}`,
+  // 3. TEST: Knowledge MCQ (Prioritize unresolved mistake if available)
+  let targetQuiz = null;
+  if (activeMistakes.length > 0) {
+    const mistakeContentId = activeMistakes[0].contentId;
+    targetQuiz = APP_DATA.quizzes.find(q => q.id === mistakeContentId);
+  }
+  if (!targetQuiz) {
+    const trackQuizzes = APP_DATA.quizzes.filter(q => q.track === targetTrack);
+    targetQuiz = trackQuizzes.length > 0 ? trackQuizzes[0] : APP_DATA.quizzes[0];
+  }
+
+  if (targetQuiz) {
+    session.push({
+      id: `feed_mcq_${targetQuiz.id}`,
       type: "mcq",
-      topicId: mod.id,
-      track: quiz.track,
-      title: "Quick Knowledge Check",
-      question: quiz.question,
-      options: quiz.options,
-      correctIndex: quiz.correctIndex,
-      explanation: quiz.explanation,
-      xp: quiz.xp || 50
+      topicId: targetMod.id,
+      track: targetQuiz.track,
+      title: "Active Knowledge Check",
+      question: targetQuiz.question,
+      options: targetQuiz.options,
+      correctIndex: targetQuiz.correctIndex,
+      explanation: targetQuiz.explanation,
+      xp: targetQuiz.xp || 50
     });
   }
 
-  // 4. Scenario Challenge Card (Source: APP_DATA.scenarioChallenges)
+  // 4. APPLY: Scenario Challenge
   const scenario = APP_DATA.scenarioChallenges[0];
   if (scenario) {
-    feed.push({
+    session.push({
       id: `feed_scenario_${scenario.id}`,
       type: "scenario",
-      topicId: mod.id,
+      topicId: targetMod.id,
       title: scenario.title,
       context: scenario.context,
       symptoms: scenario.symptoms,
@@ -549,13 +812,13 @@ function generateLearningFeed() {
     });
   }
 
-  // 5. Explain / Interview Articulation Card (Source: APP_DATA.articulationQuestions)
+  // 5. EXPLAIN: Interview Articulation Studio
   const artQ = APP_DATA.articulationQuestions[0];
   if (artQ) {
-    feed.push({
+    session.push({
       id: `feed_art_${artQ.id}`,
       type: "explain",
-      topicId: mod.id,
+      topicId: targetMod.id,
       title: artQ.title,
       category: artQ.category,
       prompt: artQ.prompt,
@@ -565,20 +828,20 @@ function generateLearningFeed() {
     });
   }
 
-  // 6. Session Completion Milestone Card
-  feed.push({
+  // 6. COMPLETE: Milestone Completion Card
+  session.push({
     id: "feed_completion",
     type: "completion",
-    title: "Session Complete! 🎉",
-    totalSteps: feed.length
+    title: "Daily Loop Completed! 🎉",
+    totalSteps: session.length
   });
 
-  return feed;
+  return session;
 }
 
 function startLearningFeed() {
   switchTab("tab-feed");
-  currentFeedItems = generateLearningFeed();
+  currentFeedItems = generateAdaptiveDailyLoopSession();
   answeredFeedCards = {};
   renderLearningFeed();
   setupFeedScrollObserver();
@@ -703,8 +966,19 @@ function handleFeedFlashcardFlip(idx) {
 }
 
 function handleFeedSRSGrade(cardIdx, grade) {
+  const item = currentFeedItems[cardIdx];
+  if (!item) return;
+
+  awardXPOnce(`feed_srs_${item.id}_${new Date().toISOString().split('T')[0]}`, 15, `Flashcard Recall: ${grade}`);
+  recordLearningResult({
+    contentId: item.id.replace('feed_fc_', ''),
+    contentType: "flashcard",
+    topicId: item.topicId,
+    correct: grade === "Good" || grade === "Easy",
+    rating: grade
+  });
+
   showToast(`Recorded: ${grade} recall (+15 XP)`);
-  addXP(15, `Flashcard Recall: ${grade}`);
   scrollFeedTo(cardIdx + 1);
 }
 
@@ -746,6 +1020,10 @@ function handleFeedMCQOption(cardIdx, selectedIdx, correctIdx, xp) {
   if (answeredFeedCards[`mcq_${cardIdx}`]) return;
   answeredFeedCards[`mcq_${cardIdx}`] = true;
 
+  const item = currentFeedItems[cardIdx];
+  const isCorrect = selectedIdx === correctIdx;
+  const quizId = item ? item.id.replace('feed_mcq_', '') : `mcq_${cardIdx}`;
+
   const optionsContainer = document.getElementById(`feed-mcq-options-${cardIdx}`);
   const expBox = document.getElementById(`feed-mcq-exp-${cardIdx}`);
   const feedbackLabel = document.getElementById(`feed-mcq-feedback-${cardIdx}`);
@@ -764,13 +1042,22 @@ function handleFeedMCQOption(cardIdx, selectedIdx, correctIdx, xp) {
 
   if (expBox && feedbackLabel) {
     expBox.style.display = "block";
-    if (selectedIdx === correctIdx) {
+    if (isCorrect) {
       feedbackLabel.innerHTML = `<span style="color: var(--accent-success);"><i class="fas fa-check-circle"></i> Correct! (+${xp} XP)</span>`;
-      addXP(xp, "Feed MCQ Correct");
+      awardXPOnce(`feed_mcq_${quizId}`, xp, "Feed MCQ Correct");
     } else {
       feedbackLabel.innerHTML = `<span style="color: #ef4444;"><i class="fas fa-times-circle"></i> Not quite. Study the diagnostic rationale:</span>`;
-      addXP(10, "Feed MCQ Attempt");
+      awardXPOnce(`feed_mcq_att_${quizId}`, 10, "Feed MCQ Attempt");
     }
+  }
+
+  if (item) {
+    recordLearningResult({
+      contentId: quizId,
+      contentType: "mcq",
+      topicId: item.topicId,
+      correct: isCorrect
+    });
   }
 }
 
@@ -822,6 +1109,10 @@ function handleFeedScenarioOption(cardIdx, selectedIdx, correctIdx, xp) {
   if (answeredFeedCards[`scenario_${cardIdx}`]) return;
   answeredFeedCards[`scenario_${cardIdx}`] = true;
 
+  const item = currentFeedItems[cardIdx];
+  const isCorrect = selectedIdx === correctIdx;
+  const scId = item ? item.id.replace('feed_scenario_', '') : `scenario_${cardIdx}`;
+
   const container = document.getElementById(`feed-scenario-options-${cardIdx}`);
   const expBox = document.getElementById(`feed-scenario-exp-${cardIdx}`);
   const feedbackLabel = document.getElementById(`feed-scenario-feedback-${cardIdx}`);
@@ -840,13 +1131,22 @@ function handleFeedScenarioOption(cardIdx, selectedIdx, correctIdx, xp) {
 
   if (expBox && feedbackLabel) {
     expBox.style.display = "block";
-    if (selectedIdx === correctIdx) {
+    if (isCorrect) {
       feedbackLabel.innerHTML = `<span style="color: var(--accent-success);"><i class="fas fa-check-circle"></i> Diagnostic Solved! (+${xp} XP)</span>`;
-      addXP(xp, "Scenario Challenge Solved");
+      awardXPOnce(`feed_sc_${scId}`, xp, "Scenario Challenge Solved");
     } else {
       feedbackLabel.innerHTML = `<span style="color: #ef4444;"><i class="fas fa-times-circle"></i> Diagnostic Fix:</span>`;
-      addXP(20, "Scenario Challenge Attempt");
+      awardXPOnce(`feed_sc_att_${scId}`, 20, "Scenario Challenge Attempt");
     }
+  }
+
+  if (item) {
+    recordLearningResult({
+      contentId: scId,
+      contentType: "scenario",
+      topicId: item.topicId,
+      correct: isCorrect
+    });
   }
 }
 
@@ -920,19 +1220,28 @@ function evaluateFeedArticulation(cardIdx) {
   if (!answeredFeedCards[`art_${cardIdx}`]) {
     answeredFeedCards[`art_${cardIdx}`] = true;
     const earnedXP = Math.max(25, Math.round((matched / item.keywords.length) * (item.xp || 75)));
-    addXP(earnedXP, "Articulation Evaluation");
+    awardXPOnce(`feed_art_${item.id}`, earnedXP, "Articulation Evaluation");
+    recordLearningResult({
+      contentId: item.id.replace('feed_art_', ''),
+      contentType: "articulation",
+      topicId: item.topicId,
+      correct: scorePct >= 60
+    });
     showToast(`Articulation Evaluated: +${earnedXP} XP!`);
   }
 }
 
 function renderCompletionFeedCard(item, idx, total) {
+  // Trigger Daily Loop milestone completion
+  completeDailyLoopSession();
+
   return `
     <div class="feed-card" id="feed-card-${idx}">
       <div class="feed-completion-box">
         <div class="feed-completion-icon">🎉</div>
-        <h2 style="font-family: var(--font-heading); font-size: 1.6rem; color: #ffffff; margin-bottom: 0.4rem;">Learning Session Complete!</h2>
+        <h2 style="font-family: var(--font-heading); font-size: 1.6rem; color: #ffffff; margin-bottom: 0.4rem;">Daily Loop Completed!</h2>
         <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.2rem;">
-          You completed all ${item.totalSteps} learning steps today.<br>Concepts reviewed, active recall practiced, and practical reasoning sharpened.
+          You completed all ${item.totalSteps} personalized learning steps.<br>Concepts reviewed, active recall practiced, and daily streak maintained!
         </p>
         <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
           <button class="btn btn-primary" onclick="switchTab('tab-dashboard')">
@@ -944,10 +1253,51 @@ function renderCompletionFeedCard(item, idx, total) {
         </div>
       </div>
       <div class="feed-card-footer" style="justify-content: center;">
-        <span style="font-size: 0.82rem; color: var(--accent-success); font-weight: 700;">Daily Loop Milestone Achieved ⚡</span>
+        <span style="font-size: 0.82rem; color: var(--accent-success); font-weight: 700;">🔥 Daily Loop & Streak Updated (+50 XP)</span>
       </div>
     </div>
   `;
+}
+
+/**
+ * Daily Loop Completion & Streak Preservation Engine
+ */
+function completeDailyLoopSession() {
+  const today = new Date().toISOString().split('T')[0];
+  if (!userState.dailyLoop) {
+    userState.dailyLoop = { lastCompletedDate: null, completedDates: [], sessionsCompleted: 0 };
+  }
+
+  const isFirstToday = userState.dailyLoop.lastCompletedDate !== today;
+
+  if (isFirstToday) {
+    userState.dailyLoop.lastCompletedDate = today;
+    if (!userState.dailyLoop.completedDates.includes(today)) {
+      userState.dailyLoop.completedDates.push(today);
+    }
+    userState.dailyLoop.sessionsCompleted += 1;
+
+    // Preserving & updating streak
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    if (userState.lastLoginDate === yesterdayStr) {
+      userState.streak += 1;
+    } else if (userState.lastLoginDate < yesterdayStr) {
+      userState.streak = 1;
+    }
+    userState.lastLoginDate = today;
+
+    // Daily Milestone Bonus (+50 XP)
+    awardXPOnce(`daily_loop_milestone_${today}`, 50, "for Daily Loop Completion");
+    if (userState.streak >= 3) {
+      unlockBadge("streak_3");
+    }
+
+    saveUserState();
+    renderMobileHomeSummary();
+  }
 }
 
 function scrollFeedTo(index) {
@@ -1317,15 +1667,22 @@ function renderTopicContent(topicId) {
 }
 
 function toggleTopicCompletion(topicId) {
-  if (!userState.completedTopics.includes(topicId)) {
+  const isCompletedNow = !userState.completedTopics.includes(topicId);
+  if (isCompletedNow) {
     userState.completedTopics.push(topicId);
-    addXP(50, "for completing curriculum topic");
+    awardXPOnce(`topic_${topicId}`, 50, "for completing curriculum topic");
     if (userState.completedTopics.length >= 10) {
       unlockBadge("python_master");
     }
   } else {
     userState.completedTopics = userState.completedTopics.filter(id => id !== topicId);
   }
+  recordLearningResult({
+    contentId: topicId,
+    contentType: "topic",
+    topicId: topicId,
+    correct: isCompletedNow
+  });
   saveUserState();
   renderTopicContent(topicId);
 }
@@ -2110,8 +2467,9 @@ function handleQuizAnswer(quizId, selectedIdx, isScenario = false) {
   if (!quiz) return;
 
   const card = document.getElementById(`quiz-card-${quizId}`) || event.target.closest('.quiz-card');
-  const options = card.querySelectorAll('.quiz-option');
-  const explainBox = card.querySelector('.explanation-box');
+  const options = card ? card.querySelectorAll('.quiz-option') : [];
+  const explainBox = card ? card.querySelector('.explanation-box') : null;
+  const isCorrect = selectedIdx === quiz.correctIndex;
 
   options.forEach((opt, idx) => {
     opt.style.pointerEvents = "none";
@@ -2124,14 +2482,21 @@ function handleQuizAnswer(quizId, selectedIdx, isScenario = false) {
 
   if (explainBox) explainBox.style.display = "block";
 
-  if (selectedIdx === quiz.correctIndex) {
+  if (isCorrect) {
     if (!userState.completedQuizzes.includes(quizId)) {
       userState.completedQuizzes.push(quizId);
       saveUserState();
-      addXP(quiz.xp, "for correct quiz response");
+      awardXPOnce(`quiz_${quizId}`, quiz.xp, "for correct quiz response");
       unlockBadge("first_quiz");
     }
   }
+
+  recordLearningResult({
+    contentId: quizId,
+    contentType: isScenario ? "scenario" : "quiz",
+    topicId: quiz.track || "track1",
+    correct: isCorrect
+  });
 }
 
 // Timed Mock Exam Simulator
