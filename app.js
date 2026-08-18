@@ -25,7 +25,8 @@ let userState = {
   articulationScores: {},
   examHighScore: 0,
   agentVisDone: false,
-  leakDebugDone: false
+  leakDebugDone: false,
+  lastStudiedTopic: "topic1"
 };
 
 // Global Interactive Simulator States
@@ -55,11 +56,12 @@ document.addEventListener("DOMContentLoaded", () => {
   renderDashboardTracks();
   setupQuests();
   renderFlashcards();
+  renderMobileHomeSummary();
   
   // Curriculum (46 Topics)
   renderTrackFilterBar();
   renderTopicSidebar();
-  renderTopicContent(currentTopicId);
+  renderTopicContent(userState.lastStudiedTopic || currentTopicId);
   setupTopicSearch();
 
   // Formula Matrix & Key Terms
@@ -102,7 +104,12 @@ function loadUserState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     try {
-      userState = { ...userState, ...JSON.parse(saved) };
+      const parsed = JSON.parse(saved);
+      userState = {
+        ...userState,
+        ...parsed,
+        lastStudiedTopic: (parsed && parsed.lastStudiedTopic) ? parsed.lastStudiedTopic : "topic1"
+      };
     } catch (e) {
       console.error("Failed to parse userState", e);
     }
@@ -276,6 +283,11 @@ function switchTab(tabId) {
     }
   });
 
+  // Dynamic panel refresh hook
+  if (tabId === "tab-dashboard") {
+    renderMobileHomeSummary();
+  }
+
   // Close Mobile Drawer if open
   closeMobileDrawer();
 
@@ -353,6 +365,107 @@ function setupTabNavigation() {
       closeMobileDrawer();
     }
   });
+}
+
+// -------------------------------------------------------------
+// MOBILE HOME & DAILY HUB ENGINE (PHASE 3)
+// -------------------------------------------------------------
+
+function getGreetingText() {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return "Good morning 👋";
+  if (hour >= 12 && hour < 17) return "Good afternoon 👋";
+  return "Good evening 👋";
+}
+
+function renderMobileHomeSummary() {
+  // 1. Dynamic Greeting
+  const greetingEl = document.getElementById("mobile-greeting-text");
+  if (greetingEl) greetingEl.textContent = getGreetingText();
+
+  // 2. Mobile Status Hero (Streak, XP, Level, Progress Bar)
+  const streakEl = document.getElementById("mobile-hero-streak");
+  const xpEl = document.getElementById("mobile-hero-xp");
+  const lvlEl = document.getElementById("mobile-hero-level");
+  const fillEl = document.getElementById("mobile-hero-fill");
+
+  const currentLvlConfig = APP_DATA.levels.find(l => l.level === userState.level) || APP_DATA.levels[0];
+  const nextLvlConfig = APP_DATA.levels.find(l => l.level === userState.level + 1);
+
+  if (streakEl) streakEl.textContent = userState.streak || 1;
+  if (xpEl) xpEl.textContent = userState.xp || 0;
+  if (lvlEl) lvlEl.textContent = `Lvl ${currentLvlConfig.level}: ${currentLvlConfig.title}`;
+
+  if (fillEl) {
+    if (nextLvlConfig) {
+      const currentMin = currentLvlConfig.minXP;
+      const nextMin = nextLvlConfig.minXP;
+      const progress = Math.min(100, Math.max(0, (((userState.xp || 0) - currentMin) / (nextMin - currentMin)) * 100));
+      fillEl.style.width = `${progress}%`;
+    } else {
+      fillEl.style.width = `100%`;
+    }
+  }
+
+  // 3. Continue Learning Resume Card
+  const lastTopicId = userState.lastStudiedTopic || currentTopicId || "topic1";
+  const mod = APP_DATA.modules.find(m => m.id === lastTopicId) || APP_DATA.modules[0];
+  const trackObj = APP_DATA.tracks.find(t => t.id === mod.track) || { name: "Core Curriculum" };
+
+  const contTitleEl = document.getElementById("mobile-continue-title");
+  const contTrackEl = document.getElementById("mobile-continue-track");
+  if (contTitleEl) contTitleEl.textContent = `Topic ${mod.number}: ${mod.title}`;
+  if (contTrackEl) contTrackEl.textContent = trackObj.name;
+
+  // 4. Progress Metrics
+  const statTopicsEl = document.getElementById("mobile-stat-topics");
+  const statQuizzesEl = document.getElementById("mobile-stat-quizzes");
+  const statBadgesEl = document.getElementById("mobile-stat-badges");
+
+  if (statTopicsEl) statTopicsEl.textContent = `${userState.completedTopics ? userState.completedTopics.length : 0} / ${APP_DATA.modules.length}`;
+  if (statQuizzesEl) statQuizzesEl.textContent = `${userState.completedQuizzes ? userState.completedQuizzes.length : 0} / ${APP_DATA.quizzes.length}`;
+  if (statBadgesEl) statBadgesEl.textContent = `${userState.unlockedBadges ? userState.unlockedBadges.length : 0} / ${APP_DATA.badges.length}`;
+
+  // 5. Weak Areas / Recommended Focus Topics
+  const weakContainer = document.getElementById("mobile-weak-areas-container");
+  if (weakContainer) {
+    const uncompleted = APP_DATA.modules.filter(m => !userState.completedTopics || !userState.completedTopics.includes(m.id));
+    if (uncompleted.length > 0 && userState.completedTopics && userState.completedTopics.length > 0) {
+      const topFocus = uncompleted.slice(0, 2);
+      weakContainer.innerHTML = topFocus.map(f => `
+        <div class="weak-topic-item">
+          <span>Topic ${f.number}: ${f.title}</span>
+          <button class="weak-topic-btn" onclick="openTopicFromHome('${f.id}')">Practice</button>
+        </div>
+      `).join('');
+    } else {
+      weakContainer.innerHTML = `<div class="empty-state-text">No weak areas yet 🎉 Keep practicing to identify topics that need more attention.</div>`;
+    }
+  }
+}
+
+function resumeLastStudiedTopic() {
+  const topicId = userState.lastStudiedTopic || currentTopicId || "topic1";
+  switchTab("tab-curriculum");
+  const mod = APP_DATA.modules.find(m => m.id === topicId) || APP_DATA.modules[0];
+  currentTrackFilter = mod.track;
+  renderTrackFilterBar();
+  renderTopicSidebar();
+  renderTopicContent(topicId);
+}
+
+function openTopicFromHome(topicId) {
+  switchTab("tab-curriculum");
+  const mod = APP_DATA.modules.find(m => m.id === topicId) || APP_DATA.modules[0];
+  currentTrackFilter = mod.track;
+  renderTrackFilterBar();
+  renderTopicSidebar();
+  renderTopicContent(topicId);
+}
+
+function startDailyLoopEntry() {
+  showToast("⚡ Launching today's practice with your active topic...");
+  resumeLastStudiedTopic();
 }
 
 // LaTeX Math Formatter
@@ -578,6 +691,10 @@ function adjustReadingFontSize(delta) {
 
 function renderTopicContent(topicId) {
   currentTopicId = topicId;
+  userState.lastStudiedTopic = topicId;
+  saveUserState();
+  renderMobileHomeSummary();
+
   const modIdx = APP_DATA.modules.findIndex(m => m.id === topicId);
   const mod = modIdx !== -1 ? APP_DATA.modules[modIdx] : APP_DATA.modules[0];
   const contentArea = document.getElementById("module-content-area");

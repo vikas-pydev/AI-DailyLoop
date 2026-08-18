@@ -184,80 +184,207 @@
 
       <!-- TAB 1: DAILY DASHBOARD -->
       <section id="tab-dashboard" class="tab-panel active">
-        <div class="hero-banner">
-          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.6rem;">
-            <span class="module-tag" style="background: rgba(255,255,255,0.15); color: #ffffff;">IITP-AIMLT-2601 Evaluation Master</span>
-            <span class="module-tag" style="background: rgba(16, 185, 129, 0.2); color: var(--accent-success);">46 Topics Complete</span>
+
+        <!-- Mobile-Only Dashboard & Daily Hub (<= 768px) -->
+        <div class="mobile-dashboard-hub">
+
+          <!-- Greeting Section -->
+          <div class="mobile-greeting-section">
+            <h2 class="mobile-greeting-title" id="mobile-greeting-text">Good morning 👋</h2>
+            <p class="mobile-greeting-sub">Ready for today's AI & ML practice?</p>
           </div>
-          <h1 class="hero-title">IIT Patna AI/ML/DL & GenAI Exam Accelerator</h1>
-          <p class="hero-desc">
-            Complete interactive revision suite: master all 46 exam topics from Python fundamentals, NumPy, Pandas, and SQL to classical ML, Evaluation Metrics, LLMs, RAG, and LangGraph multi-agent orchestration.
-          </p>
-          <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.2rem;">
-            <button class="btn" onclick="document.querySelector('[data-tab=\'tab-curriculum\']').click()">
-              <i class="fas fa-book-open"></i> Explore 46 Curriculum Topics
-            </button>
-            <button class="btn btn-secondary" onclick="document.querySelector('[data-tab=\'tab-revision\']').click()">
-              <i class="fas fa-bolt"></i> Quick Formula Matrix
-            </button>
-            <button class="btn btn-secondary" onclick="document.querySelector('[data-tab=\'tab-visualizers\']').click()">
-              <i class="fas fa-play"></i> 9 Interactive Simulators
-            </button>
-            <button class="btn btn-success" onclick="startMockExam()">
-              <i class="fas fa-stopwatch"></i> Start Timed Exam Simulator
+
+          <!-- Streak & Rank Progress Hero Card -->
+          <div class="glass-card mobile-status-hero">
+            <div class="mobile-status-row">
+              <div class="mobile-status-item">
+                <span class="mobile-status-icon">🔥</span>
+                <div>
+                  <div class="mobile-status-val"><span id="mobile-hero-streak">1</span> Day</div>
+                  <div class="mobile-status-lbl">Daily Streak</div>
+                </div>
+              </div>
+              <div class="mobile-status-divider"></div>
+              <div class="mobile-status-item">
+                <span class="mobile-status-icon">⭐</span>
+                <div>
+                  <div class="mobile-status-val"><span id="mobile-hero-xp">0</span> XP</div>
+                  <div class="mobile-status-lbl"><span id="mobile-hero-level">Lvl 1: AI Apprentice</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="mobile-status-bar-bg">
+              <div class="mobile-status-bar-fill" id="mobile-hero-fill"></div>
+            </div>
+          </div>
+
+          <!-- Today's Daily Loop Primary Hero CTA Card -->
+          <div class="glass-card mobile-daily-loop-card">
+            <div class="mobile-loop-tag">⚡ TODAY'S RECOMMENDED ACTION</div>
+            <h3 class="mobile-loop-title">Today's Daily Loop</h3>
+            <p class="mobile-loop-desc">5–10 minute focused session to master core AI concepts and active recall.</p>
+            
+            <div class="mobile-loop-flow">
+              <span class="loop-chip">🧠 Learn</span>
+              <i class="fas fa-arrow-right loop-arrow"></i>
+              <span class="loop-chip">📇 Recall</span>
+              <i class="fas fa-arrow-right loop-arrow"></i>
+              <span class="loop-chip">⚡ Test</span>
+              <i class="fas fa-arrow-right loop-arrow"></i>
+              <span class="loop-chip">💻 Apply</span>
+              <i class="fas fa-arrow-right loop-arrow"></i>
+              <span class="loop-chip">🎤 Explain</span>
+            </div>
+
+            <button class="btn btn-daily-loop" onclick="startDailyLoopEntry()">
+              <i class="fas fa-play"></i> Start Daily Loop
             </button>
           </div>
+
+          <!-- Continue Learning Resume Card -->
+          <div class="glass-card mobile-continue-card">
+            <div class="mobile-section-header">
+              <h3 class="card-title"><i class="fas fa-bookmark" style="color: var(--accent-primary);"></i> Continue Learning</h3>
+              <span class="mobile-track-badge" id="mobile-continue-track">Track 1</span>
+            </div>
+            <div class="mobile-continue-body">
+              <h4 class="mobile-continue-topic" id="mobile-continue-title">Topic 1: Python Advanced Features & Comprehensions</h4>
+              <button class="btn btn-secondary btn-sm" onclick="resumeLastStudiedTopic()">
+                Continue Topic <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Daily Learning Progress Card -->
+          <div class="glass-card mobile-progress-card">
+            <h3 class="card-title" style="margin-bottom: 0.8rem;"><i class="fas fa-chart-pie" style="color: var(--accent-cyan);"></i> Progress Overview</h3>
+            <div class="mobile-metrics-grid">
+              <div class="mobile-metric-box">
+                <span class="mobile-metric-num" id="mobile-stat-topics">0 / 46</span>
+                <span class="mobile-metric-label">Topics Completed</span>
+              </div>
+              <div class="mobile-metric-box">
+                <span class="mobile-metric-num" id="mobile-stat-quizzes">0 / 6</span>
+                <span class="mobile-metric-label">Quizzes Passed</span>
+              </div>
+              <div class="mobile-metric-box">
+                <span class="mobile-metric-num" id="mobile-stat-badges">0 / 10</span>
+                <span class="mobile-metric-label">Badges Unlocked</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Weak Areas / Recommended Focus Card -->
+          <div class="glass-card mobile-weak-areas-card">
+            <h3 class="card-title" style="margin-bottom: 0.6rem;"><i class="fas fa-bullseye" style="color: var(--accent-warning);"></i> Focus & Practice Areas</h3>
+            <div id="mobile-weak-areas-container" class="mobile-weak-list">
+              <!-- Rendered dynamically by app.js -->
+            </div>
+          </div>
+
+          <!-- Quick Actions Grid -->
+          <div class="glass-card mobile-quick-actions-card">
+            <h3 class="card-title" style="margin-bottom: 0.8rem;"><i class="fas fa-th-large" style="color: var(--accent-pink);"></i> Quick Shortcuts</h3>
+            <div class="mobile-shortcuts-grid">
+              <button class="shortcut-btn" onclick="switchTab('tab-flashcards')">
+                <i class="fas fa-clone" style="color: var(--accent-cyan);"></i>
+                <span>Flashcards</span>
+              </button>
+              <button class="shortcut-btn" onclick="switchTab('tab-quizzes')">
+                <i class="fas fa-vial" style="color: var(--accent-warning);"></i>
+                <span>Quizzes</span>
+              </button>
+              <button class="shortcut-btn" onclick="switchTab('tab-quizzes'); startMockExam();">
+                <i class="fas fa-stopwatch" style="color: var(--accent-success);"></i>
+                <span>Mock Exam</span>
+              </button>
+              <button class="shortcut-btn" onclick="switchTab('tab-visualizers')">
+                <i class="fas fa-sliders-h" style="color: var(--accent-primary);"></i>
+                <span>9 Simulators</span>
+              </button>
+            </div>
+          </div>
+
         </div>
 
-        <!-- Learning Tracks Quick Access -->
-        <div class="glass-card" style="margin-top: 1.5rem;">
-          <h3 class="card-title"><i class="fas fa-layer-group" style="color: var(--accent-primary);"></i> 6 Learning Tracks Overview</h3>
-          <p class="card-subtitle">Quick jump into any exam track to study definitions, formulas, and code workflows.</p>
-          <div class="track-grid" id="dashboard-track-grid">
-            <!-- Rendered by app.js -->
+        <!-- Desktop-Only Dashboard Content (>= 1024px) -->
+        <div class="desktop-dashboard-content">
+          <div class="hero-banner">
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.6rem;">
+              <span class="module-tag" style="background: rgba(255,255,255,0.15); color: #ffffff;">IITP-AIMLT-2601 Evaluation Master</span>
+              <span class="module-tag" style="background: rgba(16, 185, 129, 0.2); color: var(--accent-success);">46 Topics Complete</span>
+            </div>
+            <h1 class="hero-title">IIT Patna AI/ML/DL & GenAI Exam Accelerator</h1>
+            <p class="hero-desc">
+              Complete interactive revision suite: master all 46 exam topics from Python fundamentals, NumPy, Pandas, and SQL to classical ML, Evaluation Metrics, LLMs, RAG, and LangGraph multi-agent orchestration.
+            </p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.2rem;">
+              <button class="btn" onclick="switchTab('tab-curriculum')">
+                <i class="fas fa-book-open"></i> Explore 46 Curriculum Topics
+              </button>
+              <button class="btn btn-secondary" onclick="switchTab('tab-revision')">
+                <i class="fas fa-bolt"></i> Quick Formula Matrix
+              </button>
+              <button class="btn btn-secondary" onclick="switchTab('tab-visualizers')">
+                <i class="fas fa-play"></i> 9 Interactive Simulators
+              </button>
+              <button class="btn btn-success" onclick="startMockExam()">
+                <i class="fas fa-stopwatch"></i> Start Timed Exam Simulator
+              </button>
+            </div>
           </div>
-        </div>
 
-        <!-- Daily Quests & Quick Flashcard Section -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
-          
-          <div class="glass-card">
-            <h3 class="card-title"><i class="fas fa-calendar-check" style="color: var(--accent-success);"></i> Daily Missions</h3>
-            <p class="card-subtitle">Complete daily missions to maintain your streak and level up your AI rank.</p>
-            <div class="quest-grid" id="daily-quests-container">
+          <!-- Learning Tracks Quick Access -->
+          <div class="glass-card" style="margin-top: 1.5rem;">
+            <h3 class="card-title"><i class="fas fa-layer-group" style="color: var(--accent-primary);"></i> 6 Learning Tracks Overview</h3>
+            <p class="card-subtitle">Quick jump into any exam track to study definitions, formulas, and code workflows.</p>
+            <div class="track-grid" id="dashboard-track-grid">
               <!-- Rendered by app.js -->
             </div>
           </div>
 
-          <!-- Quick Flashcard Preview Card -->
-          <div class="glass-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-              <h3 class="card-title"><i class="fas fa-clone" style="color: var(--accent-cyan);"></i> Quick Flashcard Recall</h3>
-              <button class="btn-text" onclick="document.querySelector('[data-tab=\'tab-flashcards\']').click()">Open Deck <i class="fas fa-external-link-alt"></i></button>
-            </div>
-            <p class="card-subtitle">Click to flip. Spaced repetition for instant recall on core exam formulas & definitions.</p>
-
-            <div class="flashcard-wrapper" onclick="this.classList.toggle('flipped')">
-              <div class="flashcard-inner">
-                <div class="flashcard-front">
-                  <div class="flashcard-label">Front • Question / Concept</div>
-                  <div class="flashcard-text flashcard-front-text">Loading...</div>
-                </div>
-                <div class="flashcard-back">
-                  <div class="flashcard-label">Back • Answer & Formula</div>
-                  <div class="flashcard-text flashcard-back-text">Loading...</div>
-                </div>
+          <!-- Daily Quests & Quick Flashcard Section -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+            
+            <div class="glass-card">
+              <h3 class="card-title"><i class="fas fa-calendar-check" style="color: var(--accent-success);"></i> Daily Missions</h3>
+              <p class="card-subtitle">Complete daily missions to maintain your streak and level up your AI rank.</p>
+              <div class="quest-grid" id="daily-quests-container">
+                <!-- Rendered by app.js -->
               </div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-              <button class="btn btn-secondary" onclick="prevFlashcard()"><i class="fas fa-arrow-left"></i> Prev</button>
-              <span class="flashcard-counter" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Card 1 of 46</span>
-              <button class="btn btn-secondary" onclick="nextFlashcard()">Next <i class="fas fa-arrow-right"></i></button>
-            </div>
-          </div>
+            <!-- Quick Flashcard Preview Card -->
+            <div class="glass-card">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <h3 class="card-title"><i class="fas fa-clone" style="color: var(--accent-cyan);"></i> Quick Flashcard Recall</h3>
+                <button class="btn-text" onclick="switchTab('tab-flashcards')">Open Deck <i class="fas fa-external-link-alt"></i></button>
+              </div>
+              <p class="card-subtitle">Click to flip. Spaced repetition for instant recall on core exam formulas & definitions.</p>
 
+              <div class="flashcard-wrapper" onclick="this.classList.toggle('flipped')">
+                <div class="flashcard-inner">
+                  <div class="flashcard-front">
+                    <div class="flashcard-label">Front • Question / Concept</div>
+                    <div class="flashcard-text flashcard-front-text">Loading...</div>
+                  </div>
+                  <div class="flashcard-back">
+                    <div class="flashcard-label">Back • Answer & Formula</div>
+                    <div class="flashcard-text flashcard-back-text">Loading...</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                <button class="btn btn-secondary" onclick="prevFlashcard()"><i class="fas fa-arrow-left"></i> Prev</button>
+                <span class="flashcard-counter" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Card 1 of 46</span>
+                <button class="btn btn-secondary" onclick="nextFlashcard()">Next <i class="fas fa-arrow-right"></i></button>
+              </div>
+            </div>
+
+          </div>
         </div>
+
       </section>
 
       <!-- TAB 2: KNOWLEDGE HUB (46 TOPICS) -->
