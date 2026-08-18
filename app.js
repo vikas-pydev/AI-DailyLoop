@@ -117,6 +117,41 @@ document.addEventListener("DOMContentLoaded", () => {
       prevFlashcard();
     }
   });
+
+  // PWA Service Worker Registration & Offline Hardening (Phase 10)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => {
+          // Listen for available updates without disrupting active session
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // Only notify user if not actively in an exam or drill
+                  if (!activeExamSession || !activeExamSession.inProgress) {
+                    showToast("✨ App updated to latest version!");
+                  }
+                }
+              });
+            }
+          });
+        })
+        .catch(err => {
+          console.warn("ServiceWorker registration skipped or failed:", err);
+        });
+    });
+  }
+
+  // Network Status Listeners
+  window.addEventListener('offline', () => {
+    showToast("📡 Offline mode active • Saved curriculum is fully available!");
+  });
+
+  window.addEventListener('online', () => {
+    showToast("🌐 Connection restored!");
+  });
 });
 
 // State Persistence
