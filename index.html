@@ -719,43 +719,84 @@
 
       <!-- TAB 5: SPACED FLASHCARDS -->
       <section id="tab-flashcards" class="tab-panel">
-        <div class="glass-card">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+        <div class="glass-card flashcard-studio-card">
+          
+          <!-- Header & Due Badge -->
+          <div class="flashcard-studio-header">
             <div>
-              <h2 class="card-title"><i class="fas fa-clone" style="color: var(--accent-cyan);"></i> Flashcard Spaced Repetition Deck</h2>
-              <p class="card-subtitle">46 flashcards covering all exam topics. Filter by track, flip with click or spacebar, and test recall.</p>
+              <h2 class="card-title" style="margin-bottom: 0.2rem;"><i class="fas fa-clone" style="color: var(--accent-cyan);"></i> Spaced Flashcards Studio</h2>
+              <p class="card-subtitle" style="margin-bottom: 0;">Active recall & spaced repetition system for core formulas and definitions.</p>
             </div>
-
-            <!-- Track Filter for Flashcards -->
-            <select id="flashcard-track-select" class="input-field" style="max-width: 260px;" onchange="filterFlashcardTrack(this.value)">
-              <option value="all">All Tracks (46 Cards)</option>
-              <option value="track1">Track 1: Foundations & Python</option>
-              <option value="track2">Track 2: NumPy, Pandas & SQL</option>
-              <option value="track3">Track 3: Viz, EDA, APIs & Scraping</option>
-              <option value="track4">Track 4: ML Foundations</option>
-              <option value="track5">Track 5: Models & Evaluation</option>
-              <option value="track6">Track 6: LLMs, RAG & Agents</option>
-            </select>
-          </div>
-
-          <div class="flashcard-wrapper" onclick="this.classList.toggle('flipped')" style="min-height: 240px;">
-            <div class="flashcard-inner">
-              <div class="flashcard-front">
-                <div class="flashcard-label">Front • Question / Concept (Click to flip)</div>
-                <div class="flashcard-text flashcard-front-text">Loading...</div>
-              </div>
-              <div class="flashcard-back">
-                <div class="flashcard-label">Back • Answer / Solution</div>
-                <div class="flashcard-text flashcard-back-text">Loading...</div>
-              </div>
+            <div class="flashcard-stats-row">
+              <span class="flashcard-due-badge" id="flashcard-due-badge">🔥 Calculating due...</span>
+              <span class="flashcard-deck-counter" id="flashcard-deck-counter">1 / 46</span>
             </div>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 1.5rem auto 0 auto;">
-            <button class="btn btn-secondary" onclick="prevFlashcard()"><i class="fas fa-arrow-left"></i> Previous</button>
-            <span class="flashcard-counter" style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">Card 1 of 46</span>
-            <button class="btn btn-secondary" onclick="nextFlashcard()">Next <i class="fas fa-arrow-right"></i></button>
+          <!-- Category & Due Filter Chips -->
+          <div class="flashcard-filter-chips" id="flashcard-filter-chips">
+            <button class="fc-chip active" data-fc-filter="due" onclick="filterFlashcardMode('due')">🔥 Due Today</button>
+            <button class="fc-chip" data-fc-filter="all" onclick="filterFlashcardMode('all')">All Deck (46)</button>
+            <button class="fc-chip" data-fc-filter="track1" onclick="filterFlashcardMode('track1')">🐍 Track 1</button>
+            <button class="fc-chip" data-fc-filter="track2" onclick="filterFlashcardMode('track2')">📊 Track 2</button>
+            <button class="fc-chip" data-fc-filter="track3" onclick="filterFlashcardMode('track3')">📈 Track 3</button>
+            <button class="fc-chip" data-fc-filter="track4" onclick="filterFlashcardMode('track4')">⚙️ Track 4</button>
+            <button class="fc-chip" data-fc-filter="track5" onclick="filterFlashcardMode('track5')">🤖 Track 5</button>
+            <button class="fc-chip" data-fc-filter="track6" onclick="filterFlashcardMode('track6')">🧠 Track 6</button>
+            <button class="fc-chip fc-shuffle-chip" onclick="shuffleFlashcardDeck()" title="Shuffle Deck"><i class="fas fa-random"></i> Shuffle</button>
           </div>
+
+          <!-- Caught Up Empty State Box (when due queue is complete) -->
+          <div id="flashcard-caught-up-box" class="flashcard-caught-up-box" style="display: none;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎉</div>
+            <h3 style="font-family: var(--font-heading); font-size: 1.4rem; color: #ffffff; margin-bottom: 0.3rem;">You're Caught Up!</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.2rem;">All scheduled flashcards for today have been reviewed. Great recall session!</p>
+            <div style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+              <button class="btn btn-primary" onclick="filterFlashcardMode('all')">
+                <i class="fas fa-layer-group"></i> Review All 46 Cards
+              </button>
+              <button class="btn btn-secondary" onclick="switchTab('tab-dashboard')">
+                <i class="fas fa-home"></i> Back to Home
+              </button>
+            </div>
+          </div>
+
+          <!-- Main 3D Flashcard Flipper Container -->
+          <div id="flashcard-flipper-container">
+            <div class="flashcard-wrapper" id="main-flashcard-wrapper" onclick="toggleMainFlashcardFlip()" style="min-height: 240px;">
+              <div class="flashcard-inner">
+                <div class="flashcard-front">
+                  <div class="flashcard-label">Front • Question / Concept (Tap to flip)</div>
+                  <div class="flashcard-text flashcard-front-text">Loading...</div>
+                  <div id="flashcard-front-math" class="math-block" style="display: none; margin-top: 0.8rem;"></div>
+                </div>
+                <div class="flashcard-back">
+                  <div class="flashcard-label">Back • Answer / Solution</div>
+                  <div class="flashcard-text flashcard-back-text">Loading...</div>
+                  <div id="flashcard-back-math" class="math-block" style="display: none; margin-top: 0.8rem;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SRS Rating Controls (Appears after card flip or on review) -->
+            <div class="flashcard-srs-panel" id="flashcard-srs-panel">
+              <div class="srs-prompt-text">Rate recall difficulty to schedule next review:</div>
+              <div class="feed-srs-grid">
+                <button class="btn-srs btn-srs-again" onclick="rateCurrentFlashcard('Again')">😵 Again (1d)</button>
+                <button class="btn-srs btn-srs-hard" onclick="rateCurrentFlashcard('Hard')">😐 Hard (2d)</button>
+                <button class="btn-srs btn-srs-good" onclick="rateCurrentFlashcard('Good')">🙂 Good (4d)</button>
+                <button class="btn-srs btn-srs-easy" onclick="rateCurrentFlashcard('Easy')">🔥 Easy (7d)</button>
+              </div>
+            </div>
+
+            <!-- Navigation Controls -->
+            <div class="flashcard-nav-controls">
+              <button class="btn btn-secondary fc-nav-btn" onclick="prevFlashcard()"><i class="fas fa-arrow-left"></i> Prev</button>
+              <button class="btn btn-secondary fc-nav-btn" onclick="toggleMainFlashcardFlip()"><i class="fas fa-sync-alt"></i> Flip</button>
+              <button class="btn btn-secondary fc-nav-btn" onclick="nextFlashcard()">Next <i class="fas fa-arrow-right"></i></button>
+            </div>
+          </div>
+
         </div>
       </section>
 

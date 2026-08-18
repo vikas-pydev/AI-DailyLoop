@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Dashboard & Tracks
   renderDashboardTracks();
   setupQuests();
-  renderFlashcards();
+  filterFlashcardMode('due');
   renderMobileHomeSummary();
   
   // Curriculum (46 Topics)
@@ -2356,39 +2356,180 @@ function runLangGraphRouter() {
 }
 
 // -------------------------------------------------------------
-// FLASHCARDS SPACING DECK
+// FLASHCARDS SPACING DECK & SRS ENGINE (PHASE 6)
 // -------------------------------------------------------------
 
+let currentFlashcardFilterMode = "due";
+
+function getDueFlashcards() {
+  const today = new Date().toISOString().split('T')[0];
+  return APP_DATA.flashcards.filter(f => {
+    const srs = userState.flashcardSRS ? userState.flashcardSRS[f.id] : null;
+    return !srs || !srs.nextReviewDate || srs.nextReviewDate <= today;
+  });
+}
+
+function updateFlashcardDueBadge() {
+  const dueCards = getDueFlashcards();
+  const badgeEl = document.getElementById("flashcard-due-badge");
+  if (badgeEl) {
+    if (dueCards.length > 0) {
+      badgeEl.className = "flashcard-due-badge";
+      badgeEl.innerHTML = `🔥 ${dueCards.length} Due Today`;
+    } else {
+      badgeEl.className = "flashcard-due-badge";
+      badgeEl.style.background = "rgba(16, 185, 129, 0.18)";
+      badgeEl.style.borderColor = "rgba(16, 185, 129, 0.4)";
+      badgeEl.style.color = "#a7f3d0";
+      badgeEl.innerHTML = `✓ Caught Up!`;
+    }
+  }
+}
+
 function renderFlashcards() {
-  if (currentFlashcardDeck.length === 0) return;
+  updateFlashcardDueBadge();
+
+  const caughtUpBox = document.getElementById("flashcard-caught-up-box");
+  const flipperContainer = document.getElementById("flashcard-flipper-container");
+  const counterEl = document.getElementById("flashcard-deck-counter");
+
+  if (currentFlashcardDeck.length === 0) {
+    if (caughtUpBox) caughtUpBox.style.display = "block";
+    if (flipperContainer) flipperContainer.style.display = "none";
+    if (counterEl) counterEl.textContent = "0 / 0";
+    return;
+  }
+
+  if (caughtUpBox) caughtUpBox.style.display = "none";
+  if (flipperContainer) flipperContainer.style.display = "block";
+
   const card = currentFlashcardDeck[currentFlashcardIdx % currentFlashcardDeck.length];
 
+  // Front Content
   document.querySelectorAll(".flashcard-front-text").forEach(el => el.textContent = card.front);
+  const frontMath = document.getElementById("flashcard-front-math");
+  if (frontMath) {
+    if (card.math) {
+      frontMath.style.display = "block";
+      frontMath.innerHTML = formatLaTeXMath(card.math);
+    } else {
+      frontMath.style.display = "none";
+    }
+  }
+
+  // Back Content
   document.querySelectorAll(".flashcard-back-text").forEach(el => el.textContent = card.back);
-  document.querySelectorAll(".flashcard-counter").forEach(el => el.textContent = `Card ${currentFlashcardIdx + 1} of ${currentFlashcardDeck.length}`);
+  const backMath = document.getElementById("flashcard-back-math");
+  if (backMath) {
+    if (card.math) {
+      backMath.style.display = "block";
+      backMath.innerHTML = formatLaTeXMath(card.math);
+    } else {
+      backMath.style.display = "none";
+    }
+  }
+
+  // Counters
+  const counterStr = `${(currentFlashcardIdx % currentFlashcardDeck.length) + 1} / ${currentFlashcardDeck.length}`;
+  if (counterEl) counterEl.textContent = counterStr;
+  document.querySelectorAll(".flashcard-counter").forEach(el => el.textContent = `Card ${counterStr}`);
+}
+
+function toggleMainFlashcardFlip() {
+  const wrapper = document.getElementById("main-flashcard-wrapper");
+  if (wrapper) {
+    wrapper.classList.toggle("flipped");
+  } else {
+    document.querySelectorAll(".flashcard-wrapper").forEach(w => w.classList.toggle("flipped"));
+  }
 }
 
 function nextFlashcard() {
   document.querySelectorAll(".flashcard-wrapper").forEach(w => w.classList.remove("flipped"));
-  currentFlashcardIdx = (currentFlashcardIdx + 1) % currentFlashcardDeck.length;
-  setTimeout(renderFlashcards, 180);
+  if (currentFlashcardDeck.length > 0) {
+    currentFlashcardIdx = (currentFlashcardIdx + 1) % currentFlashcardDeck.length;
+  }
+  setTimeout(renderFlashcards, 150);
 }
 
 function prevFlashcard() {
   document.querySelectorAll(".flashcard-wrapper").forEach(w => w.classList.remove("flipped"));
-  currentFlashcardIdx = (currentFlashcardIdx - 1 + currentFlashcardDeck.length) % currentFlashcardDeck.length;
+  if (currentFlashcardDeck.length > 0) {
+    currentFlashcardIdx = (currentFlashcardIdx - 1 + currentFlashcardDeck.length) % currentFlashcardDeck.length;
+  }
+  setTimeout(renderFlashcards, 150);
+}
+
+function rateCurrentFlashcard(grade) {
+  if (currentFlashcardDeck.length === 0) return;
+  const card = currentFlashcardDeck[currentFlashcardIdx % currentFlashcardDeck.length];
+  if (!card) return;
+
+  const today = new Date().toISOString().split('T')[0];
+  awardXPOnce(`fc_srs_${card.id}_${today}`, 15, `Flashcard Recall: ${grade}`);
+  recordLearningResult({
+    contentId: card.id,
+    contentType: "flashcard",
+    topicId: card.track || "track1",
+    correct: grade === "Good" || grade === "Easy",
+    rating: grade
+  });
+
+  showToast(`Recorded ${grade} recall (+15 XP)`);
+
+  // If in due mode, update deck to reflect newly reviewed card
+  if (currentFlashcardFilterMode === "due") {
+    currentFlashcardDeck = getDueFlashcards();
+    if (currentFlashcardIdx >= currentFlashcardDeck.length) {
+      currentFlashcardIdx = 0;
+    }
+  } else {
+    currentFlashcardIdx = (currentFlashcardIdx + 1) % currentFlashcardDeck.length;
+  }
+
+  document.querySelectorAll(".flashcard-wrapper").forEach(w => w.classList.remove("flipped"));
   setTimeout(renderFlashcards, 180);
 }
 
-function filterFlashcardTrack(trackId) {
-  if (trackId === "all") {
+function filterFlashcardMode(mode) {
+  currentFlashcardFilterMode = mode;
+  currentFlashcardIdx = 0;
+
+  // Update chip active states
+  document.querySelectorAll(".fc-chip").forEach(chip => {
+    if (chip.getAttribute("data-fc-filter") === mode) {
+      chip.classList.add("active");
+    } else {
+      chip.classList.remove("active");
+    }
+  });
+
+  if (mode === "due") {
+    currentFlashcardDeck = getDueFlashcards();
+  } else if (mode === "all") {
     currentFlashcardDeck = [...APP_DATA.flashcards];
   } else {
-    currentFlashcardDeck = APP_DATA.flashcards.filter(f => f.track === trackId);
+    currentFlashcardDeck = APP_DATA.flashcards.filter(f => f.track === mode);
+  }
+
+  document.querySelectorAll(".flashcard-wrapper").forEach(w => w.classList.remove("flipped"));
+  renderFlashcards();
+}
+
+function filterFlashcardTrack(trackId) {
+  filterFlashcardMode(trackId);
+}
+
+function shuffleFlashcardDeck() {
+  if (currentFlashcardDeck.length <= 1) return;
+  for (let i = currentFlashcardDeck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [currentFlashcardDeck[i], currentFlashcardDeck[j]] = [currentFlashcardDeck[j], currentFlashcardDeck[i]];
   }
   currentFlashcardIdx = 0;
   document.querySelectorAll(".flashcard-wrapper").forEach(w => w.classList.remove("flipped"));
   renderFlashcards();
+  showToast("Deck shuffled 🔀");
 }
 
 // -------------------------------------------------------------

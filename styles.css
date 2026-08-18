@@ -1207,6 +1207,131 @@ header.desktop-header {
   white-space: pre-line;
 }
 
+/* Enhanced Flashcard Studio Layout (Phase 6) */
+.flashcard-studio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.flashcard-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.flashcard-due-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.3rem 0.65rem;
+  border-radius: 20px;
+  background: rgba(245, 158, 11, 0.18);
+  color: #fde68a;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.flashcard-deck-counter {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.flashcard-filter-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 0.6rem;
+  margin-bottom: 1.2rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.flashcard-filter-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.fc-chip {
+  padding: 0.35rem 0.75rem;
+  min-height: 36px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.fc-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.fc-chip.active {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #ffffff;
+  box-shadow: 0 0 12px var(--accent-primary-glow);
+}
+
+.fc-shuffle-chip {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #c7d2fe;
+}
+
+.flashcard-srs-panel {
+  max-width: 600px;
+  margin: 1.2rem auto 0 auto;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1rem;
+}
+
+.srs-prompt-text {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+
+.flashcard-nav-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 600px;
+  margin: 1rem auto 0 auto;
+  gap: 0.6rem;
+}
+
+.fc-nav-btn {
+  flex: 1;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.flashcard-caught-up-box {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(15, 23, 42, 0.9));
+  border: 1px solid var(--accent-success);
+  border-radius: var(--radius-lg);
+  max-width: 600px;
+  margin: 1rem auto;
+}
+
 /* Quizzes & Scenarios */
 .quiz-card {
   background: rgba(15, 23, 42, 0.6);
