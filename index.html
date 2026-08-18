@@ -798,18 +798,18 @@
             <div class="flashcard-srs-panel" id="flashcard-srs-panel">
               <div class="srs-prompt-text">Rate recall difficulty to schedule next review:</div>
               <div class="feed-srs-grid">
-                <button class="btn-srs btn-srs-again" onclick="rateCurrentFlashcard('Again')">😵 Again (1d)</button>
-                <button class="btn-srs btn-srs-hard" onclick="rateCurrentFlashcard('Hard')">😐 Hard (2d)</button>
-                <button class="btn-srs btn-srs-good" onclick="rateCurrentFlashcard('Good')">🙂 Good (4d)</button>
-                <button class="btn-srs btn-srs-easy" onclick="rateCurrentFlashcard('Easy')">🔥 Easy (7d)</button>
+                <button class="btn-srs btn-srs-again" onclick="rateCurrentFlashcard('Again')" aria-label="Rate Again (1 day interval)">😵 Again (1d)</button>
+                <button class="btn-srs btn-srs-hard" onclick="rateCurrentFlashcard('Hard')" aria-label="Rate Hard (2 day interval)">😐 Hard (2d)</button>
+                <button class="btn-srs btn-srs-good" onclick="rateCurrentFlashcard('Good')" aria-label="Rate Good (4 day interval)">🙂 Good (4d)</button>
+                <button class="btn-srs btn-srs-easy" onclick="rateCurrentFlashcard('Easy')" aria-label="Rate Easy (7 day interval)">🔥 Easy (7d)</button>
               </div>
             </div>
 
             <!-- Navigation Controls -->
             <div class="flashcard-nav-controls">
-              <button class="btn btn-secondary fc-nav-btn" onclick="prevFlashcard()"><i class="fas fa-arrow-left"></i> Prev</button>
-              <button class="btn btn-secondary fc-nav-btn" onclick="toggleMainFlashcardFlip()"><i class="fas fa-sync-alt"></i> Flip</button>
-              <button class="btn btn-secondary fc-nav-btn" onclick="nextFlashcard()">Next <i class="fas fa-arrow-right"></i></button>
+              <button class="btn btn-secondary fc-nav-btn" onclick="prevFlashcard()" aria-label="Previous Flashcard"><i class="fas fa-arrow-left"></i> Prev</button>
+              <button class="btn btn-secondary fc-nav-btn" onclick="toggleMainFlashcardFlip()" aria-label="Flip Flashcard"><i class="fas fa-sync-alt"></i> Flip</button>
+              <button class="btn btn-secondary fc-nav-btn" onclick="nextFlashcard()" aria-label="Next Flashcard">Next <i class="fas fa-arrow-right"></i></button>
             </div>
           </div>
 
@@ -864,7 +864,7 @@
           </div>
 
           <!-- Submit Confirmation Modal -->
-          <div id="exam-submit-modal" class="exam-modal-backdrop" style="display: none;">
+          <div id="exam-submit-modal" class="exam-modal-backdrop" role="dialog" aria-modal="true" aria-label="Confirm Exam Submission" style="display: none;">
             <div class="exam-modal-content">
               <h3 style="font-family: var(--font-heading); font-size: 1.35rem; color: #ffffff; margin-bottom: 0.5rem;"><i class="fas fa-question-circle" style="color: var(--accent-primary);"></i> Submit Exam?</h3>
               <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;" id="exam-submit-stats-text">
@@ -1088,11 +1088,11 @@
       </section>
 
       <!-- MISTAKE REMEDIATION MODAL -->
-      <div class="exam-modal-backdrop" id="mistake-remediation-modal" style="display: none;">
+      <div class="exam-modal-backdrop" id="mistake-remediation-modal" role="dialog" aria-modal="true" aria-label="Mistake Remediation Drill" style="display: none;">
         <div class="exam-modal-content" style="max-width: 520px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
             <span class="module-tag" id="remediation-topic-tag" style="background: rgba(239, 68, 68, 0.2); color: #fca5a5;">Mistake Remediation</span>
-            <button class="btn-text" onclick="closeMistakeRemediationModal()" style="padding: 0.2rem 0.5rem; font-size: 1.1rem;">✕</button>
+            <button class="btn-text" onclick="closeMistakeRemediationModal()" aria-label="Close remediation modal" style="padding: 0.2rem 0.5rem; font-size: 1.1rem;">✕</button>
           </div>
           <div id="remediation-content-stage">
             <!-- Rendered by app.js -->
@@ -1128,7 +1128,7 @@
   </nav>
 
   <!-- LEVEL UP POPUP MODAL -->
-  <div class="modal-overlay" id="level-up-modal">
+  <div class="modal-overlay" id="level-up-modal" role="dialog" aria-modal="true" aria-labelledby="modal-level-title">
     <div class="modal-card">
       <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">🎉</div>
       <h2 style="font-family: var(--font-heading); font-size: 1.8rem; color: #ffffff; margin-bottom: 0.4rem;">LEVEL UP!</h2>

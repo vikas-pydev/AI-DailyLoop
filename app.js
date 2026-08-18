@@ -105,9 +105,37 @@ document.addEventListener("DOMContentLoaded", () => {
   renderBadges();
   renderProgressDashboard();
 
-  // Keyboard navigation for flashcards
+  // Keyboard navigation for flashcards, modals and drawer
   document.addEventListener("keydown", (e) => {
+    // Global Escape Key to dismiss overlays safely
+    if (e.key === "Escape" || e.code === "Escape") {
+      const remedModal = document.getElementById("mistake-remediation-modal");
+      if (remedModal && remedModal.style.display === "flex") {
+        closeMistakeRemediationModal();
+        return;
+      }
+
+      const examModal = document.getElementById("exam-submit-modal");
+      if (examModal && examModal.style.display === "flex") {
+        closeExamSubmitModal();
+        return;
+      }
+
+      const levelModal = document.getElementById("level-up-modal");
+      if (levelModal && levelModal.classList.contains("active")) {
+        closeModal();
+        return;
+      }
+
+      const drawer = document.getElementById("mobile-drawer");
+      if (drawer && drawer.classList.contains("active")) {
+        closeMobileDrawer();
+        return;
+      }
+    }
+
     if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+
     if (e.code === "Space") {
       e.preventDefault();
       document.querySelectorAll(".flashcard-wrapper").forEach(w => w.classList.toggle('flipped'));
@@ -115,6 +143,14 @@ document.addEventListener("DOMContentLoaded", () => {
       nextFlashcard();
     } else if (e.code === "ArrowLeft") {
       prevFlashcard();
+    } else if (e.key === "1") {
+      rateCurrentFlashcard('Again');
+    } else if (e.key === "2") {
+      rateCurrentFlashcard('Hard');
+    } else if (e.key === "3") {
+      rateCurrentFlashcard('Good');
+    } else if (e.key === "4") {
+      rateCurrentFlashcard('Easy');
     }
   });
 

@@ -3499,4 +3499,29 @@ header.desktop-header {
   font-size: 0.82rem;
 }
 
+/* ------------------------------------------------------------- */
+/* ACCESSIBILITY & FOCUS VISIBILITY (PHASE 11)                  */
+/* ------------------------------------------------------------- */
+
+:focus-visible {
+  outline: 2px solid var(--accent-cyan) !important;
+  outline-offset: 3px !important;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+.exam-option-card:focus-visible,
+.btn-srs:focus-visible,
+.track-chip:focus-visible,
+.fc-chip:focus-visible,
+.bottom-nav-item:focus-visible,
+.drawer-nav-item:focus-visible {
+  outline: 2px solid var(--accent-cyan) !important;
+  outline-offset: 2px !important;
+}
+
+
 
