@@ -168,13 +168,23 @@ function updateHeaderUI() {
   const lvlTitleEl = document.getElementById("user-level-title");
   const fillEl = document.getElementById("xp-progress-fill");
 
+  // Mobile Header & Drawer stats
+  const mobileStreakEl = document.getElementById("mobile-header-streak");
+  const drawerLevelEl = document.getElementById("drawer-user-level");
+  const drawerXPEl = document.getElementById("drawer-user-xp");
+  const drawerStreakEl = document.getElementById("drawer-user-streak");
+
   if (streakEl) streakEl.textContent = userState.streak;
+  if (mobileStreakEl) mobileStreakEl.textContent = userState.streak;
   if (xpEl) xpEl.textContent = userState.xp;
   
   const currentLvlConfig = APP_DATA.levels.find(l => l.level === userState.level) || APP_DATA.levels[0];
   const nextLvlConfig = APP_DATA.levels.find(l => l.level === userState.level + 1);
   
   if (lvlTitleEl) lvlTitleEl.textContent = `Lvl ${currentLvlConfig.level}: ${currentLvlConfig.title}`;
+  if (drawerLevelEl) drawerLevelEl.textContent = `Lvl ${currentLvlConfig.level}: ${currentLvlConfig.title}`;
+  if (drawerXPEl) drawerXPEl.textContent = userState.xp;
+  if (drawerStreakEl) drawerStreakEl.textContent = userState.streak;
 
   if (fillEl) {
     if (nextLvlConfig) {
@@ -188,7 +198,7 @@ function updateHeaderUI() {
   }
 }
 
-// Main Navigation Sidebar Toggle (Expanded <-> Collapsed <-> Hidden)
+// Main Navigation Sidebar Toggle (Expanded <-> Collapsed <-> Hidden on Desktop)
 let sidebarState = "expanded"; // "expanded", "collapsed", "hidden"
 
 function applySidebarState() {
@@ -217,28 +227,131 @@ function toggleMainSidebar() {
   applySidebarState();
 }
 
-// Tab Navigation
-function setupTabNavigation() {
-  const navItems = document.querySelectorAll(".nav-item");
-  const tabPanels = document.querySelectorAll(".tab-panel");
+// Unified Tab Navigation (Shared across Desktop Sidebar, Mobile Bottom Nav & Drawer)
+function switchTab(tabId) {
+  if (!tabId) return;
 
+  const tabPanels = document.querySelectorAll(".tab-panel");
+  const desktopNavItems = document.querySelectorAll(".sidebar .nav-item");
+  const bottomNavItems = document.querySelectorAll(".bottom-nav-item");
+  const drawerNavItems = document.querySelectorAll(".drawer-nav-item");
+
+  // Sync Desktop Sidebar Active State
+  desktopNavItems.forEach(item => {
+    if (item.getAttribute("data-tab") === tabId) {
+      item.classList.add("active");
+    } else {
+      item.classList.remove("active");
+    }
+  });
+
+  // Sync Mobile Bottom Nav Active State
+  bottomNavItems.forEach(item => {
+    if (item.getAttribute("data-bottom-tab") === tabId) {
+      item.classList.add("active");
+      item.setAttribute("aria-current", "page");
+    } else {
+      item.classList.remove("active");
+      item.removeAttribute("aria-current");
+    }
+  });
+
+  // Sync Mobile Drawer Active State
+  drawerNavItems.forEach(item => {
+    if (item.getAttribute("data-drawer-tab") === tabId) {
+      item.classList.add("active");
+      item.setAttribute("aria-current", "page");
+    } else {
+      item.classList.remove("active");
+      item.removeAttribute("aria-current");
+    }
+  });
+
+  // Switch Active Tab Panel
+  tabPanels.forEach(panel => {
+    if (panel.id === tabId) {
+      panel.classList.add("active");
+    } else {
+      panel.classList.remove("active");
+    }
+  });
+
+  // Close Mobile Drawer if open
+  closeMobileDrawer();
+
+  // Scroll smoothly to top of the view
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// Mobile Drawer Controls
+function openMobileDrawer() {
+  const drawer = document.getElementById("mobile-drawer");
+  const overlay = document.getElementById("mobile-drawer-overlay");
+  const triggerBtn = document.getElementById("mobile-drawer-btn");
+
+  if (drawer) drawer.classList.add("active");
+  if (overlay) overlay.classList.add("active");
+  if (triggerBtn) triggerBtn.setAttribute("aria-expanded", "true");
+  document.body.style.overflow = "hidden"; // Prevent background page scroll while drawer is open
+
+  // Push history state so browser back button closes the drawer
+  try {
+    history.pushState({ drawerOpen: true }, "");
+  } catch (e) {
+    // Non-blocking fallback
+  }
+}
+
+function closeMobileDrawer() {
+  const drawer = document.getElementById("mobile-drawer");
+  const overlay = document.getElementById("mobile-drawer-overlay");
+  const triggerBtn = document.getElementById("mobile-drawer-btn");
+
+  if (drawer) drawer.classList.remove("active");
+  if (overlay) overlay.classList.remove("active");
+  if (triggerBtn) triggerBtn.setAttribute("aria-expanded", "false");
+  document.body.style.overflow = ""; // Restore page scrolling
+}
+
+function toggleMobileDrawer() {
+  const drawer = document.getElementById("mobile-drawer");
+  if (drawer && drawer.classList.contains("active")) {
+    closeMobileDrawer();
+  } else {
+    openMobileDrawer();
+  }
+}
+
+// Tab Navigation Setup & Accessibility Event Listeners
+function setupTabNavigation() {
   applySidebarState();
 
-  navItems.forEach(item => {
+  // Attach click listener to desktop sidebar items
+  const desktopNavItems = document.querySelectorAll(".sidebar .nav-item");
+  desktopNavItems.forEach(item => {
     item.addEventListener("click", (e) => {
       e.preventDefault();
       const targetTab = item.getAttribute("data-tab");
-      
-      navItems.forEach(nav => nav.classList.remove("active"));
-      tabPanels.forEach(panel => panel.classList.remove("active"));
-
-      item.classList.add("active");
-      const targetPanel = document.getElementById(targetTab);
-      if (targetPanel) {
-        targetPanel.classList.add("active");
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
+      if (targetTab) switchTab(targetTab);
     });
+  });
+
+  // Keyboard accessibility: Escape key closes drawer
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const drawer = document.getElementById("mobile-drawer");
+      if (drawer && drawer.classList.contains("active")) {
+        closeMobileDrawer();
+      }
+    }
+  });
+
+  // Browser Back button integration: Close drawer on back
+  window.addEventListener("popstate", (e) => {
+    const drawer = document.getElementById("mobile-drawer");
+    if (drawer && drawer.classList.contains("active")) {
+      closeMobileDrawer();
+    }
   });
 }
 
@@ -377,8 +490,7 @@ function renderDashboardTracks() {
 
 function selectTrackAndOpenCurriculum(trackId) {
   currentTrackFilter = trackId;
-  const navCurriculum = document.querySelector('[data-tab="tab-curriculum"]');
-  if (navCurriculum) navCurriculum.click();
+  switchTab("tab-curriculum");
   renderTrackFilterBar();
   renderTopicSidebar();
   const firstTopicInTrack = APP_DATA.modules.find(m => m.track === trackId) || APP_DATA.modules[0];

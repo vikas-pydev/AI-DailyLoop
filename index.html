@@ -16,15 +16,89 @@
 </head>
 <body>
 
-  <!-- Top Sticky Header Navigation -->
-  <header>
+  <!-- Mobile Compact Header (<= 768px) -->
+  <header class="mobile-header" role="banner">
+    <div class="mobile-header-inner">
+      <button class="mobile-header-btn" id="mobile-drawer-btn" onclick="openMobileDrawer()" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-drawer">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="mobile-logo" onclick="switchTab('tab-dashboard')">
+        <span class="mobile-logo-icon">⚡</span>
+        <span class="mobile-logo-text">AI DailyLoop</span>
+      </div>
+      <div class="mobile-header-stats">
+        <div class="mobile-streak-badge" title="Daily Streak">
+          <i class="fas fa-fire"></i>
+          <span id="mobile-header-streak">1</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Navigation Drawer & Overlay (<= 768px) -->
+  <div class="mobile-drawer-overlay" id="mobile-drawer-overlay" onclick="closeMobileDrawer()" aria-hidden="true"></div>
+  <aside class="mobile-drawer" id="mobile-drawer" role="dialog" aria-label="Navigation Menu" aria-modal="true">
+    <div class="drawer-header">
+      <div class="drawer-user-info">
+        <div class="drawer-avatar">⚡</div>
+        <div>
+          <div class="drawer-title" id="drawer-user-level">Lvl 1: AI Apprentice</div>
+          <div class="drawer-subtitle"><span id="drawer-user-xp">0</span> XP • <span id="drawer-user-streak">1</span> Day Streak</div>
+        </div>
+      </div>
+      <button class="drawer-close-btn" id="mobile-drawer-close" onclick="closeMobileDrawer()" aria-label="Close navigation menu">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <nav class="drawer-nav" role="navigation" aria-label="Drawer Navigation">
+      <div class="drawer-section-title">Core Learning</div>
+      <a class="drawer-nav-item active" data-drawer-tab="tab-dashboard" onclick="switchTab('tab-dashboard')">
+        <i class="fas fa-compass"></i>
+        <span>Daily Dashboard</span>
+      </a>
+      <a class="drawer-nav-item" data-drawer-tab="tab-curriculum" onclick="switchTab('tab-curriculum')">
+        <i class="fas fa-book-open"></i>
+        <span>Knowledge Hub (46 Topics)</span>
+      </a>
+      <a class="drawer-nav-item" data-drawer-tab="tab-revision" onclick="switchTab('tab-revision')">
+        <i class="fas fa-bolt"></i>
+        <span>Formula & Quick Revision</span>
+      </a>
+      <a class="drawer-nav-item" data-drawer-tab="tab-visualizers" onclick="switchTab('tab-visualizers')">
+        <i class="fas fa-sliders-h"></i>
+        <span>9 Interactive Simulators</span>
+      </a>
+
+      <div class="drawer-section-title">Testing & Recall</div>
+      <a class="drawer-nav-item" data-drawer-tab="tab-flashcards" onclick="switchTab('tab-flashcards')">
+        <i class="fas fa-clone"></i>
+        <span>Spaced Flashcards</span>
+      </a>
+      <a class="drawer-nav-item" data-drawer-tab="tab-quizzes" onclick="switchTab('tab-quizzes')">
+        <i class="fas fa-vial"></i>
+        <span>Quiz & Exam Simulator</span>
+      </a>
+      <a class="drawer-nav-item" data-drawer-tab="tab-articulation" onclick="switchTab('tab-articulation')">
+        <i class="fas fa-microphone"></i>
+        <span>Interview Studio</span>
+      </a>
+      <a class="drawer-nav-item" data-drawer-tab="tab-achievements" onclick="switchTab('tab-achievements')">
+        <i class="fas fa-trophy"></i>
+        <span>Achievements & Badges</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Top Sticky Header Navigation (Desktop >= 1024px) -->
+  <header class="desktop-header">
     <div class="header-container">
       <div class="logo-area">
         <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" onclick="toggleMainSidebar()" title="Toggle Navigation Sidebar">
           <i class="fas fa-bars"></i>
         </button>
-        <div class="logo-icon" onclick="document.querySelector('[data-tab=\'tab-dashboard\']').click()">⚡</div>
-        <div class="logo-text" onclick="document.querySelector('[data-tab=\'tab-dashboard\']').click()">
+        <div class="logo-icon" onclick="switchTab('tab-dashboard')">⚡</div>
+        <div class="logo-text" onclick="switchTab('tab-dashboard')">
           <h1>AI Mastery Lab</h1>
           <span>IITP-AIMLT-2601 Exam Studio</span>
         </div>
@@ -50,7 +124,7 @@
           </div>
         </div>
 
-        <button class="badge-btn" onclick="document.querySelector('[data-tab=\'tab-achievements\']').click()">
+        <button class="badge-btn" onclick="switchTab('tab-achievements')">
           <i class="fas fa-medal" style="color: #fbbf24;"></i> Badges
         </button>
       </div>
@@ -632,6 +706,30 @@
 
     </main>
   </div>
+
+  <!-- Mobile Fixed Bottom Navigation (<= 768px) -->
+  <nav class="mobile-bottom-nav" role="navigation" aria-label="Mobile Navigation Bar">
+    <button class="bottom-nav-item active" data-bottom-tab="tab-dashboard" onclick="switchTab('tab-dashboard')" aria-label="Home">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </button>
+    <button class="bottom-nav-item" data-bottom-tab="tab-curriculum" onclick="switchTab('tab-curriculum')" aria-label="Learn">
+      <i class="fas fa-bolt"></i>
+      <span>Learn</span>
+    </button>
+    <button class="bottom-nav-item" data-bottom-tab="tab-curriculum" onclick="switchTab('tab-curriculum')" aria-label="Topics">
+      <i class="fas fa-book-open"></i>
+      <span>Topics</span>
+    </button>
+    <button class="bottom-nav-item" data-bottom-tab="tab-achievements" onclick="switchTab('tab-achievements')" aria-label="Progress">
+      <i class="fas fa-chart-line"></i>
+      <span>Progress</span>
+    </button>
+    <button class="bottom-nav-item" onclick="openMobileDrawer()" aria-label="Open full navigation menu" aria-controls="mobile-drawer">
+      <i class="fas fa-bars"></i>
+      <span>More</span>
+    </button>
+  </nav>
 
   <!-- LEVEL UP POPUP MODAL -->
   <div class="modal-overlay" id="level-up-modal">
